@@ -1,4 +1,5 @@
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>לוח זמנים — משלחת קלינית ארה"ב</title>
 <style>
   :root {
@@ -174,6 +175,18 @@
     font-weight: 700;
   }
 
+  .hint-close {
+    display: none;
+  }
+
+  details.day-card-wrapper[open] .hint-open {
+    display: none;
+  }
+
+  details.day-card-wrapper[open] .hint-close {
+    display: inline;
+  }
+
   .chevron {
     display: inline-block;
     transition: transform 0.2s ease;
@@ -343,20 +356,68 @@
     text-align: center;
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: 700px) {
     body {
       padding: 0 10px 40px;
     }
     header.page-header {
-      padding: 26px 18px;
-      margin-bottom: 24px;
+      padding: max(20px, env(safe-area-inset-top)) 18px 22px;
+      margin-bottom: 16px;
     }
+
+    /* one (or a peek of two) day-card per phone screen, snap-scrolled */
     .day-grid {
-      grid-template-columns: 1fr;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      scroll-snap-type: y mandatory;
     }
+
+    details.day-card-wrapper {
+      scroll-snap-align: start;
+      min-height: 62dvh;
+      display: flex;
+      flex-direction: column;
+    }
+
     summary.day-card-summary {
-      padding: 16px;
+      padding: 18px;
+      flex: 1;
     }
+
+    .day-theme {
+      font-size: 1.02rem;
+    }
+
+    /* expanding a day takes over the entire phone screen, like its own page */
+    details.day-card-wrapper[open] {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      border-radius: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      min-height: 100dvh;
+    }
+
+    details.day-card-wrapper[open] summary.day-card-summary {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: var(--card-bg);
+      box-shadow: 0 2px 10px rgba(0, 40, 60, 0.1);
+      padding-top: max(18px, env(safe-area-inset-top));
+      flex: none;
+    }
+
+    details.day-card-wrapper[open] .day-detail {
+      padding-bottom: max(24px, env(safe-area-inset-bottom));
+    }
+
+    body:has(details.day-card-wrapper[open]) {
+      overflow: hidden;
+    }
+
     .sched-item {
       flex-direction: column;
       gap: 2px;
@@ -391,7 +452,8 @@
         <span class="day-city">📍 ניו יורק</span>
         <p class="day-theme">טיסה לניו יורק ומפגש פתיחה של המשלחת</p>
         <div class="day-card-bottom">
-          <span class="expand-hint">לוח זמנים מפורט</span>
+          <span class="expand-hint hint-open">לוח זמנים מפורט</span>
+          <span class="expand-hint hint-close">‹ סגירה וחזרה לרשימה</span>
           <span class="chevron">⌄</span>
         </div>
       </summary>
@@ -416,7 +478,8 @@
         <span class="day-city">📍 ניו יורק</span>
         <p class="day-theme">ביקור אצל <span class="org-mention">Northwell Health</span> (לקוח <span class="org-mention">Epic</span>)</p>
         <div class="day-card-bottom">
-          <span class="expand-hint">לוח זמנים מפורט</span>
+          <span class="expand-hint hint-open">לוח זמנים מפורט</span>
+          <span class="expand-hint hint-close">‹ סגירה וחזרה לרשימה</span>
           <span class="chevron">⌄</span>
         </div>
       </summary>
