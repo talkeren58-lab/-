@@ -73,7 +73,9 @@
     align-items: start;
   }
 
-  .day-card-wrapper {
+  /* --- day card (native <details>/<summary>, no JS needed) --- */
+
+  details.day-card-wrapper {
     background: var(--card-bg);
     border-radius: 18px;
     box-shadow: var(--shadow);
@@ -81,36 +83,40 @@
     transition: box-shadow 0.2s ease;
   }
 
-  .day-card-wrapper:hover {
+  details.day-card-wrapper:hover {
     box-shadow: var(--shadow-hover);
   }
 
-  .day-card-wrapper.expanded {
+  details.day-card-wrapper[open] {
     grid-column: 1 / -1;
   }
 
-  .day-card-summary {
-    all: unset;
-    box-sizing: border-box;
+  summary.day-card-summary {
+    list-style: none;
+    cursor: pointer;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    width: 100%;
     padding: 18px 20px;
-    cursor: pointer;
     border-right: 7px solid var(--primary-teal);
     background: linear-gradient(180deg, rgba(0, 146, 166, 0.06), transparent 60%);
   }
 
-  .day-card-wrapper.rest-day .day-card-summary {
+  summary.day-card-summary::-webkit-details-marker,
+  summary.day-card-summary::marker {
+    display: none;
+    content: "";
+  }
+
+  details.day-card-wrapper.rest-day summary.day-card-summary {
     border-right-color: var(--accent-green);
   }
 
-  .day-card-wrapper.travel-day .day-card-summary {
+  details.day-card-wrapper.travel-day summary.day-card-summary {
     border-right-color: var(--secondary-blue);
   }
 
-  .day-card-summary:active {
+  summary.day-card-summary:active {
     background: rgba(0, 146, 166, 0.1);
   }
 
@@ -175,19 +181,11 @@
     font-size: 1.1rem;
   }
 
-  .day-card-wrapper.expanded .chevron {
+  details.day-card-wrapper[open] .chevron {
     transform: rotate(180deg);
   }
 
   .day-detail {
-    padding: 0 22px;
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.25s ease, padding 0.25s ease;
-  }
-
-  .day-card-wrapper.expanded .day-detail {
-    max-height: 2400px;
     padding: 6px 22px 24px;
   }
 
@@ -206,6 +204,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-wrap: wrap;
   }
 
   .schedule-block h3 .loc {
@@ -278,15 +277,24 @@
     padding: 8px 12px;
   }
 
-  .group-tabs {
+  /* --- pure-CSS group tabs (radio-button trick, no JS needed) --- */
+
+  .group-tabs-css {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     margin-bottom: 12px;
   }
 
+  .group-radio {
+    position: absolute;
+    width: 0;
+    height: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
   .group-tab {
-    all: unset;
     cursor: pointer;
     padding: 8px 16px;
     border-radius: 999px;
@@ -296,19 +304,34 @@
     color: var(--text-soft);
     border: 2px solid transparent;
     transition: background 0.15s ease, color 0.15s ease;
+    user-select: none;
   }
 
-  .group-tab.active {
+  .group-tab .sub {
+    font-weight: 400;
+    opacity: 0.75;
+  }
+
+  .group-radio:checked + .group-tab {
     background: rgba(0, 146, 166, 0.12);
     color: var(--primary-teal-dark);
     border-color: var(--primary-teal);
   }
 
-  .group-panel {
-    display: none;
+  .group-radio:focus-visible + .group-tab {
+    outline: 2px solid var(--primary-teal-dark);
+    outline-offset: 2px;
   }
 
-  .group-panel.active {
+  .group-panel {
+    display: none;
+    flex: 1 0 100%;
+    width: 100%;
+  }
+
+  #d2-amb-radio:checked ~ #d2-amb-panel,
+  #d2-lh-radio:checked ~ #d2-lh-panel,
+  #d2-tech-radio:checked ~ #d2-tech-panel {
     display: block;
   }
 
@@ -331,7 +354,7 @@
     .day-grid {
       grid-template-columns: 1fr;
     }
-    .day-card-summary {
+    summary.day-card-summary {
       padding: 16px;
     }
     .sched-item {
@@ -357,200 +380,200 @@
     <p>סקירת לוח הזמנים היומי של המשלחת · הקישו על יום להרחבת הפרטים</p>
   </header>
 
-  <main class="day-grid" id="dayGrid"></main>
+  <main class="day-grid">
 
-  <footer class="note">שלב 1 (המשך) — הדגמת עיצוב ופירוט שעתי ליום 2 בלבד</footer>
-
-  <script>
-    const itinerary = [
-      {
-        day: 1,
-        date: "2026-07-19",
-        weekday: "ראשון",
-        city: "ניו יורק",
-        theme: "טיסה לניו יורק ומפגש פתיחה של המשלחת",
-        detail: {
-          simple: [
-            { time: "19:30", title: "מפגש פתיחה של המשלחת", desc: "" }
-          ]
-        }
-      },
-      {
-        day: 2,
-        date: "2026-07-20",
-        weekday: "שני",
-        city: "ניו יורק",
-        theme: `ביקור אצל <span class="org-mention">Northwell Health</span> (לקוח <span class="org-mention">Epic</span>)`,
-        detail: {
-          intro: {
-            title: "מושב פתיחה",
-            location: "59th St, קומה 16, חדר ישיבות",
-            items: [
-              { time: "8:30–9:30", title: `רקע על <span class="org-mention">Epic</span>`, desc: "הקשר, היסטוריה, מבנה היישום, לפני ואחרי עליית Epic לאוויר, מפת דרכים עתידית" },
-              { time: "9:30–10:30", title: "שאלות ותשובות", desc: "" }
-            ]
-          },
-          groupNote: "המשלחת מתפצלת כאן לשלוש קבוצות מקבילות — בחרו את הקבוצה הרלוונטית:",
-          groups: [
-            {
-              key: "ambulatory",
-              label: "אמבולטורי",
-              sub: "Ambulatory",
-              items: [
-                { time: "10:30–11:30", title: "הצגה (59th, מיקום בהמתנה)", desc: "תהליך יישום והכנה מקומי לעליה לאוויר; סטנדרטיזציה והתאמה אישית" },
-                { time: "11:30–11:45", title: "מעבר לאתרים אמבולטוריים", desc: "נסיעה לשני אתרים אמבולטוריים", travel: true },
-                { time: "11:45–12:30", title: "סיורים באתרים אמבולטוריים", desc: "סיור מודרך באתר האמבולטורי" },
-                { time: "12:30–12:45", title: "מעבר חזרה ל-59th St", desc: "נסיעה חזרה לקומה 16", travel: true }
-              ]
-            },
-            {
-              key: "lenoxhill",
-              label: "לנוקס היל",
-              sub: "Lenox Hill",
-              items: [
-                { time: "10:30–10:45", title: "מעבר ל-Lenox Hill", desc: "נסיעה ל-Lenox Hill", travel: true },
-                { time: "10:45–11:45", title: "הצגה (Lenox Hill, מיקום בהמתנה)", desc: "תהליך יישום והכנה מקומי לעליה לאוויר; סטנדרטיזציה והתאמה אישית" },
-                { time: "11:45–12:30", title: "סיור באתר Lenox Hill", desc: "סיור מודרך באתר" },
-                { time: "12:30–12:45", title: "מעבר חזרה ל-59th St", desc: "נסיעה חזרה לקומה 16", travel: true }
-              ]
-            },
-            {
-              key: "technology",
-              label: "טכנולוגיה",
-              sub: "Technology",
-              items: [
-                { time: "10:30–11:30", title: "הצגה (59th, מיקום בהמתנה)", desc: "סקירת אפליקציה, טכנולוגיה, ואינטגרציית נתונים" },
-                { time: "11:30–11:45", title: "מעבר ל-Lenox Hill", desc: "נסיעה ל-Lenox Hill", travel: true },
-                { time: "11:45–12:30", title: "סיור באתר Lenox Hill", desc: "סיור מודרך באתר" },
-                { time: "12:30–12:45", title: "מעבר חזרה ל-59th St", desc: "נסיעה חזרה לקומה 16", travel: true }
-              ]
-            }
-          ],
-          outro: {
-            title: "סיום משותף",
-            location: "59th St, קומה 16, חדר ישיבות",
-            items: [
-              { time: "12:30–13:30", title: "ארוחת צהריים", desc: "הפסקת צהריים" },
-              { time: "13:30–14:30", title: "מושב סיום", desc: "תחקיר ושאלות ותשובות" }
-            ]
-          }
-        }
-      }
-    ];
-
-    function formatDate(iso, weekday) {
-      const [y, m, d] = iso.split("-");
-      return `יום ${weekday}, ${d}.${m}.${y}`;
-    }
-
-    function ltr(s) {
-      return `<span dir="ltr" style="unicode-bidi:isolate">${s}</span>`;
-    }
-
-    function renderSchedItem(item) {
-      return `
-        <div class="sched-item ${item.travel ? "travel-item" : ""}">
-          <div class="sched-time">${ltr(item.time)}</div>
-          <div class="sched-body">
-            <h4>${item.title}</h4>
-            ${item.desc ? `<p>${item.desc}</p>` : ""}
-          </div>
-        </div>
-      `;
-    }
-
-    function renderBlock(block) {
-      return `
-        <div class="schedule-block">
-          <h3>${block.title} <span class="loc">— ${block.location}</span></h3>
-          ${block.items.map(renderSchedItem).join("")}
-        </div>
-      `;
-    }
-
-    function renderDetail(detail, dayId) {
-      if (detail.simple) {
-        return `
-          <div class="schedule-block">
-            ${detail.simple.map(renderSchedItem).join("")}
-          </div>
-        `;
-      }
-
-      const tabs = detail.groups.map((g, i) => `
-        <button type="button" class="group-tab ${i === 0 ? "active" : ""}" data-group="${g.key}">
-          ${g.label} <span style="font-weight:400; opacity:.75;">${ltr(g.sub)}</span>
-        </button>
-      `).join("");
-
-      const panels = detail.groups.map((g, i) => `
-        <div class="group-panel ${i === 0 ? "active" : ""}" data-group-panel="${g.key}">
-          <div class="schedule-block">
-            ${g.items.map(renderSchedItem).join("")}
-          </div>
-        </div>
-      `).join("");
-
-      return `
-        ${renderBlock(detail.intro)}
-        <p class="group-note">${detail.groupNote}</p>
-        <div class="group-tabs" id="tabs-${dayId}">${tabs}</div>
-        <div id="panels-${dayId}">${panels}</div>
-        ${renderBlock(detail.outro)}
-      `;
-    }
-
-    function renderCard(dayData) {
-      const wrapper = document.createElement("div");
-      wrapper.className = "day-card-wrapper";
-      if (dayData.isRestDay) wrapper.classList.add("rest-day");
-      if (dayData.isTravelDay) wrapper.classList.add("travel-day");
-
-      const summary = document.createElement("button");
-      summary.type = "button";
-      summary.className = "day-card-summary";
-      summary.setAttribute("aria-expanded", "false");
-      summary.innerHTML = `
+    <details class="day-card-wrapper">
+      <summary class="day-card-summary">
         <div class="day-card-top">
-          <span class="day-number-badge">יום ${dayData.day}</span>
-          <span class="day-date">${formatDate(dayData.date, dayData.weekday)}</span>
+          <span class="day-number-badge">יום 1</span>
+          <span class="day-date">יום ראשון, 19.7.2026</span>
         </div>
-        <span class="day-city">📍 ${dayData.city}</span>
-        <p class="day-theme">${dayData.theme}</p>
+        <span class="day-city">📍 ניו יורק</span>
+        <p class="day-theme">טיסה לניו יורק ומפגש פתיחה של המשלחת</p>
         <div class="day-card-bottom">
           <span class="expand-hint">לוח זמנים מפורט</span>
           <span class="chevron">⌄</span>
         </div>
-      `;
+      </summary>
+      <div class="day-detail">
+        <div class="schedule-block">
+          <div class="sched-item">
+            <div class="sched-time"><span dir="ltr">19:30</span></div>
+            <div class="sched-body">
+              <h4>מפגש פתיחה של המשלחת</h4>
+            </div>
+          </div>
+        </div>
+      </div>
+    </details>
 
-      const detailEl = document.createElement("div");
-      detailEl.className = "day-detail";
-      detailEl.innerHTML = renderDetail(dayData.detail, dayData.day);
+    <details class="day-card-wrapper">
+      <summary class="day-card-summary">
+        <div class="day-card-top">
+          <span class="day-number-badge">יום 2</span>
+          <span class="day-date">יום שני, 20.7.2026</span>
+        </div>
+        <span class="day-city">📍 ניו יורק</span>
+        <p class="day-theme">ביקור אצל <span class="org-mention">Northwell Health</span> (לקוח <span class="org-mention">Epic</span>)</p>
+        <div class="day-card-bottom">
+          <span class="expand-hint">לוח זמנים מפורט</span>
+          <span class="chevron">⌄</span>
+        </div>
+      </summary>
+      <div class="day-detail">
 
-      summary.addEventListener("click", () => {
-        const isExpanded = wrapper.classList.toggle("expanded");
-        summary.setAttribute("aria-expanded", String(isExpanded));
-      });
+        <div class="schedule-block">
+          <h3>מושב פתיחה <span class="loc">— 59th St, קומה 16, חדר ישיבות</span></h3>
+          <div class="sched-item">
+            <div class="sched-time"><span dir="ltr">8:30–9:30</span></div>
+            <div class="sched-body">
+              <h4>רקע על <span class="org-mention">Epic</span></h4>
+              <p>הקשר, היסטוריה, מבנה היישום, לפני ואחרי עליית Epic לאוויר, מפת דרכים עתידית</p>
+            </div>
+          </div>
+          <div class="sched-item">
+            <div class="sched-time"><span dir="ltr">9:30–10:30</span></div>
+            <div class="sched-body">
+              <h4>שאלות ותשובות</h4>
+            </div>
+          </div>
+        </div>
 
-      detailEl.addEventListener("click", (e) => {
-        const tabBtn = e.target.closest(".group-tab");
-        if (!tabBtn) return;
-        const groupKey = tabBtn.dataset.group;
-        const tabsContainer = tabBtn.parentElement;
-        tabsContainer.querySelectorAll(".group-tab").forEach(b => b.classList.toggle("active", b === tabBtn));
-        const panelsContainer = tabsContainer.nextElementSibling;
-        panelsContainer.querySelectorAll(".group-panel").forEach(p => {
-          p.classList.toggle("active", p.dataset.groupPanel === groupKey);
-        });
-      });
+        <p class="group-note">המשלחת מתפצלת כאן לשלוש קבוצות מקבילות — בחרו את הקבוצה הרלוונטית:</p>
 
-      wrapper.appendChild(summary);
-      wrapper.appendChild(detailEl);
-      return wrapper;
-    }
+        <div class="group-tabs-css">
+          <input type="radio" name="d2-group" id="d2-amb-radio" class="group-radio" checked>
+          <label for="d2-amb-radio" class="group-tab">אמבולטורי <span class="sub" dir="ltr">Ambulatory</span></label>
 
-    const grid = document.getElementById("dayGrid");
-    itinerary.forEach(d => grid.appendChild(renderCard(d)));
-  </script>
+          <input type="radio" name="d2-group" id="d2-lh-radio" class="group-radio">
+          <label for="d2-lh-radio" class="group-tab">לנוקס היל <span class="sub" dir="ltr">Lenox Hill</span></label>
+
+          <input type="radio" name="d2-group" id="d2-tech-radio" class="group-radio">
+          <label for="d2-tech-radio" class="group-tab">טכנולוגיה <span class="sub" dir="ltr">Technology</span></label>
+
+          <div class="group-panel" id="d2-amb-panel">
+            <div class="schedule-block">
+              <div class="sched-item">
+                <div class="sched-time"><span dir="ltr">10:30–11:30</span></div>
+                <div class="sched-body">
+                  <h4>הצגה (59th, מיקום בהמתנה)</h4>
+                  <p>תהליך יישום והכנה מקומי לעליה לאוויר; סטנדרטיזציה והתאמה אישית</p>
+                </div>
+              </div>
+              <div class="sched-item travel-item">
+                <div class="sched-time"><span dir="ltr">11:30–11:45</span></div>
+                <div class="sched-body">
+                  <h4>מעבר לאתרים אמבולטוריים</h4>
+                  <p>נסיעה לשני אתרים אמבולטוריים</p>
+                </div>
+              </div>
+              <div class="sched-item">
+                <div class="sched-time"><span dir="ltr">11:45–12:30</span></div>
+                <div class="sched-body">
+                  <h4>סיורים באתרים אמבולטוריים</h4>
+                  <p>סיור מודרך באתר האמבולטורי</p>
+                </div>
+              </div>
+              <div class="sched-item travel-item">
+                <div class="sched-time"><span dir="ltr">12:30–12:45</span></div>
+                <div class="sched-body">
+                  <h4>מעבר חזרה ל-59th St</h4>
+                  <p>נסיעה חזרה לקומה 16</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="group-panel" id="d2-lh-panel">
+            <div class="schedule-block">
+              <div class="sched-item travel-item">
+                <div class="sched-time"><span dir="ltr">10:30–10:45</span></div>
+                <div class="sched-body">
+                  <h4>מעבר ל-Lenox Hill</h4>
+                  <p>נסיעה ל-Lenox Hill</p>
+                </div>
+              </div>
+              <div class="sched-item">
+                <div class="sched-time"><span dir="ltr">10:45–11:45</span></div>
+                <div class="sched-body">
+                  <h4>הצגה (Lenox Hill, מיקום בהמתנה)</h4>
+                  <p>תהליך יישום והכנה מקומי לעליה לאוויר; סטנדרטיזציה והתאמה אישית</p>
+                </div>
+              </div>
+              <div class="sched-item">
+                <div class="sched-time"><span dir="ltr">11:45–12:30</span></div>
+                <div class="sched-body">
+                  <h4>סיור באתר Lenox Hill</h4>
+                  <p>סיור מודרך באתר</p>
+                </div>
+              </div>
+              <div class="sched-item travel-item">
+                <div class="sched-time"><span dir="ltr">12:30–12:45</span></div>
+                <div class="sched-body">
+                  <h4>מעבר חזרה ל-59th St</h4>
+                  <p>נסיעה חזרה לקומה 16</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="group-panel" id="d2-tech-panel">
+            <div class="schedule-block">
+              <div class="sched-item">
+                <div class="sched-time"><span dir="ltr">10:30–11:30</span></div>
+                <div class="sched-body">
+                  <h4>הצגה (59th, מיקום בהמתנה)</h4>
+                  <p>סקירת אפליקציה, טכנולוגיה, ואינטגרציית נתונים</p>
+                </div>
+              </div>
+              <div class="sched-item travel-item">
+                <div class="sched-time"><span dir="ltr">11:30–11:45</span></div>
+                <div class="sched-body">
+                  <h4>מעבר ל-Lenox Hill</h4>
+                  <p>נסיעה ל-Lenox Hill</p>
+                </div>
+              </div>
+              <div class="sched-item">
+                <div class="sched-time"><span dir="ltr">11:45–12:30</span></div>
+                <div class="sched-body">
+                  <h4>סיור באתר Lenox Hill</h4>
+                  <p>סיור מודרך באתר</p>
+                </div>
+              </div>
+              <div class="sched-item travel-item">
+                <div class="sched-time"><span dir="ltr">12:30–12:45</span></div>
+                <div class="sched-body">
+                  <h4>מעבר חזרה ל-59th St</h4>
+                  <p>נסיעה חזרה לקומה 16</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="schedule-block">
+          <h3>סיום משותף <span class="loc">— 59th St, קומה 16, חדר ישיבות</span></h3>
+          <div class="sched-item">
+            <div class="sched-time"><span dir="ltr">12:30–13:30</span></div>
+            <div class="sched-body">
+              <h4>ארוחת צהריים</h4>
+              <p>הפסקת צהריים</p>
+            </div>
+          </div>
+          <div class="sched-item">
+            <div class="sched-time"><span dir="ltr">13:30–14:30</span></div>
+            <div class="sched-body">
+              <h4>מושב סיום</h4>
+              <p>תחקיר ושאלות ותשובות</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </details>
+
+  </main>
+
+  <footer class="note">שלב 1 (המשך) — הדגמת עיצוב ופירוט שעתי ליום 2 בלבד · ללא JavaScript, לתאימות מלאה בתצוגה מקדימה בנייד</footer>
 </body>
 </html>
