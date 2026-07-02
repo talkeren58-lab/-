@@ -1,0 +1,207 @@
+<meta charset="UTF-8">
+<title>לוח זמנים — משלחת קלינית ארה"ב</title>
+<style>
+  :root {
+    --primary-teal: #0092A6;
+    --secondary-blue: #0056A4;
+    --accent-green: #8DC63F;
+    --bg: #F7F9FA;
+    --text: #2B2E32;
+    --card-bg: #FFFFFF;
+    --shadow: 0 2px 10px rgba(0, 40, 60, 0.08);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Calibri', 'Carlito', 'Segoe UI', sans-serif;
+  }
+
+  body {
+    padding: 24px 16px 60px;
+  }
+
+  header.page-header {
+    max-width: 960px;
+    margin: 0 auto 28px;
+    text-align: center;
+  }
+
+  header.page-header h1 {
+    color: var(--secondary-blue);
+    font-size: 1.7rem;
+    margin: 0 0 6px;
+  }
+
+  header.page-header p {
+    margin: 0;
+    color: #5b6469;
+    font-size: 0.95rem;
+  }
+
+  .day-grid {
+    max-width: 960px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+
+  .day-card {
+    background: var(--card-bg);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    border-right: 6px solid var(--primary-teal);
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 132px;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .day-card:active {
+    transform: scale(0.98);
+  }
+
+  .day-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 40, 60, 0.14);
+  }
+
+  .day-card.rest-day {
+    border-right-color: var(--accent-green);
+  }
+
+  .day-card.travel-day {
+    border-right-color: var(--secondary-blue);
+  }
+
+  .day-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .day-number {
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: var(--secondary-blue);
+  }
+
+  .day-date {
+    font-size: 0.85rem;
+    color: #6f787d;
+  }
+
+  .day-city {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--primary-teal);
+  }
+
+  .day-city .pin {
+    font-size: 0.9rem;
+  }
+
+  .day-theme {
+    font-size: 0.95rem;
+    line-height: 1.4;
+    color: var(--text);
+  }
+
+  .day-badge {
+    align-self: flex-start;
+    background: var(--accent-green);
+    color: #223300;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 999px;
+  }
+
+  footer.note {
+    max-width: 960px;
+    margin: 28px auto 0;
+    font-size: 0.8rem;
+    color: #8a9297;
+    text-align: center;
+  }
+
+  @media (max-width: 480px) {
+    body {
+      padding: 16px 10px 40px;
+    }
+    .day-grid {
+      grid-template-columns: 1fr;
+    }
+    .day-card {
+      padding: 16px;
+      min-height: unset;
+    }
+  }
+</style>
+
+<html dir="rtl" lang="he">
+<body>
+  <header class="page-header">
+    <h1>משלחת קלינית — ארה"ב 2026</h1>
+    <p>סקירת לוח הזמנים היומי של המשלחת</p>
+  </header>
+
+  <main class="day-grid" id="dayGrid"></main>
+
+  <footer class="note">שלב 1 — הדגמת עיצוב (יום 1–2 בלבד)</footer>
+
+  <script>
+    const itinerary = [
+      {
+        day: 1,
+        date: "2026-07-19",
+        weekday: "ראשון",
+        city: "ניו יורק",
+        theme: "טיסה לניו יורק ומפגש פתיחה של המשלחת"
+      },
+      {
+        day: 2,
+        date: "2026-07-20",
+        weekday: "שני",
+        city: "ניו יורק",
+        theme: "ביקור אצל Northwell Health (לקוח Epic)"
+      }
+    ];
+
+    function formatDate(iso, weekday) {
+      const [y, m, d] = iso.split("-");
+      return `יום ${weekday}, ${d}.${m}.${y}`;
+    }
+
+    function renderCard(dayData) {
+      const card = document.createElement("article");
+      card.className = "day-card";
+
+      card.innerHTML = `
+        <div class="day-card-top">
+          <span class="day-number">יום ${dayData.day}</span>
+          <span class="day-date">${formatDate(dayData.date, dayData.weekday)}</span>
+        </div>
+        <span class="day-city"><span class="pin">📍</span>${dayData.city}</span>
+        <p class="day-theme">${dayData.theme}</p>
+      `;
+      return card;
+    }
+
+    const grid = document.getElementById("dayGrid");
+    itinerary.forEach(d => grid.appendChild(renderCard(d)));
+  </script>
+</body>
+</html>
