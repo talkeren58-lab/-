@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>לוח חתונה — טל ועדי</title>
+<style>
+:root{
+  --cream:#faf5ee;
+  --cream-2:#f3e9dd;
+  --card:#ffffff;
+  --ink:#3a2f2a;
+  --ink-soft:#7a6b62;
+  --rose:#c98a7a;
+  --rose-dark:#a8624f;
+  --sage:#8a9a7b;
+  --sage-dark:#697a5c;
+  --gold:#c9a05c;
+  --line:#e8ddd0;
+  --danger:#c0524a;
+  --danger-bg:#fbeae7;
+  --warn:#c98a3d;
+  --warn-bg:#fbf1e2;
+  --ok:#5f8f5a;
+  --ok-bg:#eaf3e7;
+  --shadow: 0 2px 10px rgba(58,47,42,.06), 0 1px 2px rgba(58,47,42,.05);
+  --radius: 16px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --cream:#221c19; --cream-2:#2a2320; --card:#2c2521; --ink:#f1e7dc; --ink-soft:#c2b2a6;
+    --line:#42362f; --rose:#e0998a; --rose-dark:#e6a998; --sage:#a3b494; --sage-dark:#b7c7aa;
+    --gold:#dcb676; --danger:#e28579; --danger-bg:#3a2422; --warn:#e0a961; --warn-bg:#3a2e1c;
+    --ok:#8fbf8a; --ok-bg:#1f2f1e; --shadow: 0 2px 14px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --cream:#221c19; --cream-2:#2a2320; --card:#2c2521; --ink:#f1e7dc; --ink-soft:#c2b2a6;
+  --line:#42362f; --rose:#e0998a; --rose-dark:#e6a998; --sage:#a3b494; --sage-dark:#b7c7aa;
+  --gold:#dcb676; --danger:#e28579; --danger-bg:#3a2422; --warn:#e0a961; --warn-bg:#3a2e1c;
+  --ok:#8fbf8a; --ok-bg:#1f2f1e; --shadow: 0 2px 14px rgba(0,0,0,.35);
+}
+:root[data-theme="light"]{
+  --cream:#faf5ee; --cream-2:#f3e9dd; --card:#ffffff; --ink:#3a2f2a; --ink-soft:#7a6b62;
+  --rose:#c98a7a; --rose-dark:#a8624f; --sage:#8a9a7b; --sage-dark:#697a5c; --gold:#c9a05c;
+  --line:#e8ddd0; --danger:#c0524a; --danger-bg:#fbeae7; --warn:#c98a3d; --warn-bg:#fbf1e2;
+  --ok:#5f8f5a; --ok-bg:#eaf3e7; --shadow: 0 2px 10px rgba(58,47,42,.06), 0 1px 2px rgba(58,47,42,.05);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:"Segoe UI","Assistant","Arial Hebrew","Arial",sans-serif;
+  background:linear-gradient(180deg,var(--cream),var(--cream-2));
+  color:var(--ink);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+h1,h2,h3{font-family:Georgia,"David","Times New Roman",serif; font-weight:600; margin:0;}
+button{font-family:inherit; cursor:pointer;}
+input,select,textarea{font-family:inherit;}
+#app{max-width:1400px; margin:0 auto; padding:0 18px 60px;}
+
+.topbar{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:18px 4px 14px;
+}
+.home-btn{
+  background:var(--card); border:1px solid var(--line); border-radius:12px;
+  width:44px; height:44px; font-size:19px; box-shadow:var(--shadow);
+}
+.title-block{text-align:center; flex:1;}
+.title-block h1{font-size:clamp(22px,4vw,32px); color:var(--rose-dark); letter-spacing:.5px;}
+.title-block h1 .amp{color:var(--gold); margin:0 6px;}
+.subtitle{margin:2px 0 0; color:var(--ink-soft); font-size:14px;}
+.topbar-actions{display:flex; gap:8px;}
+.icon-btn{
+  background:var(--card); border:1px solid var(--line); border-radius:12px;
+  width:40px; height:40px; font-size:16px; box-shadow:var(--shadow); color:var(--ink);
+}
+.icon-btn:hover, .home-btn:hover{border-color:var(--rose);}
+
+.view{display:none; opacity:0; transform:translateY(14px); transition:opacity .28s ease, transform .28s ease;}
+.view.visible{opacity:1; transform:translateY(0);}
+
+.home-grid{
+  display:grid;
+  grid-template-columns: 1.1fr 2fr 1.1fr;
+  grid-template-rows: auto auto;
+  grid-template-areas:
+    "tasks guests cal"
+    "tasks guests budget";
+  gap:18px;
+}
+.card{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+  box-shadow:var(--shadow); padding:16px 18px; cursor:pointer;
+  transition:transform .18s ease, box-shadow .18s ease;
+}
+.card:hover{transform:translateY(-3px); box-shadow:0 10px 24px rgba(58,47,42,.12);}
+.card-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+.card-head h2{font-size:18px; color:var(--ink);}
+.chevron{color:var(--ink-soft); font-size:20px;}
+.card-calendar{grid-area:cal;}
+.card-guests{grid-area:guests;}
+.card-tasks{grid-area:tasks; display:flex; flex-direction:column; max-height:640px;}
+.card-budget{grid-area:budget;}
+
+.scroll-panel{overflow-y:auto; flex:1;}
+
+/* mini calendar */
+.mini-cal-nav{display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; font-size:14px; color:var(--ink-soft);}
+.mini-cal-nav button{background:none;border:none;font-size:16px;color:var(--rose-dark);padding:2px 8px;}
+.cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:3px; text-align:center;}
+.cal-dow{font-size:11px; color:var(--ink-soft); padding:2px 0;}
+.cal-day{
+  position:relative; padding:6px 0; border-radius:8px; font-size:13px; color:var(--ink);
+  background:transparent; border:1px solid transparent; cursor:pointer;
+}
+.cal-day.out{color:var(--ink-soft); opacity:.35;}
+.cal-day.today{border-color:var(--gold); font-weight:700;}
+.cal-day:hover{background:var(--cream-2);}
+.cal-day .dot-row{display:flex; gap:2px; justify-content:center; margin-top:2px; height:5px;}
+.dot{width:5px; height:5px; border-radius:50%;}
+.dot-task{background:var(--rose);}
+.dot-milestone{background:var(--sage);}
+.dot-wedding{background:var(--gold);}
+.dot-budget{background:var(--danger);}
+.cal-legend{display:flex; gap:12px; flex-wrap:wrap; margin-top:10px; font-size:11.5px; color:var(--ink-soft);}
+.cal-legend span{display:inline-flex; align-items:center; gap:4px;}
+
+/* guest summary */
+.stat-row{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:14px;}
+.stat-box{flex:1; min-width:80px; background:var(--cream-2); border-radius:12px; padding:10px 12px; text-align:center;}
+.stat-box .num{font-size:26px; font-weight:700; color:var(--rose-dark); font-family:Georgia,serif;}
+.stat-box .lbl{font-size:12px; color:var(--ink-soft); margin-top:2px;}
+.side-bars{display:flex; flex-direction:column; gap:10px;}
+.side-bar-row{display:flex; align-items:center; gap:10px;}
+.side-bar-name{width:60px; font-size:13px; font-weight:600;}
+.side-bar-track{flex:1; height:10px; background:var(--cream-2); border-radius:6px; overflow:hidden; display:flex;}
+.side-bar-fill{height:100%;}
+.side-bar-num{font-size:12px; color:var(--ink-soft); width:80px; text-align:left;}
+
+/* task panel rows */
+.task-row{
+  display:flex; align-items:center; gap:10px; padding:9px 8px; border-radius:10px;
+  border-inline-start:4px solid var(--line); margin-bottom:6px; background:var(--cream-2);
+  cursor:pointer;
+}
+.task-row.status-not_started{border-inline-start-color:var(--ink-soft);}
+.task-row.status-in_progress{border-inline-start-color:var(--warn); background:var(--warn-bg);}
+.task-row.status-done{border-inline-start-color:var(--ok); background:var(--ok-bg); opacity:.75;}
+.task-row.status-done .task-text{text-decoration:line-through;}
+.task-dot{width:10px; height:10px; border-radius:50%; flex-shrink:0;}
+.urgency-urgent .task-dot, .badge-urgent{background:var(--danger);}
+.urgency-high .task-dot, .badge-high{background:var(--warn);}
+.urgency-medium .task-dot, .badge-medium{background:var(--gold);}
+.urgency-low .task-dot, .badge-low{background:var(--sage);}
+.task-body{flex:1; min-width:0;}
+.task-text{font-size:13.5px; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.task-meta{font-size:11px; color:var(--ink-soft); display:flex; gap:8px; margin-top:2px;}
+.task-cat-tag{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:0 6px;}
+
+/* budget summary */
+.budget-progress{background:var(--cream-2); border-radius:10px; height:14px; overflow:hidden; margin:8px 0 14px;}
+.budget-progress-fill{height:100%; background:linear-gradient(90deg,var(--sage),var(--gold));}
+.budget-nums{display:flex; justify-content:space-between; font-size:13px;}
+.budget-nums b{display:block; font-size:20px; font-family:Georgia,serif;}
+
+/* drill-down heads */
+.drill-head{display:flex; align-items:center; gap:14px; margin:18px 0 16px; flex-wrap:wrap;}
+.drill-head h2{flex:1; font-size:22px; color:var(--rose-dark); min-width:150px;}
+.back-btn{
+  background:var(--card); border:1px solid var(--line); border-radius:10px; padding:8px 14px;
+  font-size:14px; box-shadow:var(--shadow); color:var(--ink);
+}
+.add-btn{
+  background:var(--rose); color:#fff; border:none; border-radius:10px; padding:9px 16px;
+  font-size:14px; font-weight:600; box-shadow:var(--shadow);
+}
+.add-btn:hover{background:var(--rose-dark);}
+
+.filters{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; align-items:center;}
+.filters input[type=text], .filters select{
+  padding:9px 12px; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--ink); font-size:13.5px;
+}
+.filters input[type=text]{min-width:180px;}
+
+/* full task list */
+.cat-group{margin-bottom:22px;}
+.cat-group h3{font-size:15px; color:var(--sage-dark); border-bottom:2px solid var(--line); padding-bottom:6px; margin-bottom:10px;}
+.task-row-full{
+  display:flex; align-items:flex-start; gap:12px; padding:12px 14px; border-radius:12px;
+  border-inline-start:5px solid var(--line); margin-bottom:8px; background:var(--card); box-shadow:var(--shadow);
+}
+.task-row-full.status-not_started{border-inline-start-color:var(--ink-soft);}
+.task-row-full.status-in_progress{border-inline-start-color:var(--warn);}
+.task-row-full.status-done{border-inline-start-color:var(--ok); opacity:.7;}
+.status-pill{
+  border:none; border-radius:20px; padding:5px 12px; font-size:12px; font-weight:600; color:#fff; flex-shrink:0; white-space:nowrap;
+}
+.status-pill.status-not_started{background:var(--ink-soft);}
+.status-pill.status-in_progress{background:var(--warn);}
+.status-pill.status-done{background:var(--ok);}
+.task-row-full .task-body{flex:1;}
+.task-row-full .task-text{white-space:normal; font-size:14.5px; font-weight:500;}
+.task-row-full.status-done .task-text{text-decoration:line-through;}
+.badge{border-radius:20px; padding:2px 10px; font-size:11px; color:#fff; font-weight:600;}
+.icon-action{background:none; border:none; font-size:15px; color:var(--ink-soft); padding:4px 6px; border-radius:6px;}
+.icon-action:hover{background:var(--cream-2); color:var(--danger);}
+
+/* calendar full */
+.cal-full-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:6px;}
+.cal-full-day{
+  min-height:78px; border:1px solid var(--line); border-radius:10px; padding:6px; text-align:right; cursor:pointer;
+  background:var(--card); font-size:12.5px;
+}
+.cal-full-day.out{opacity:.35;}
+.cal-full-day.today{border-color:var(--gold); border-width:2px;}
+.cal-full-day:hover{background:var(--cream-2);}
+.cal-full-day .num{font-weight:700; font-size:13px;}
+.cal-full-day .ev-line{font-size:10.5px; margin-top:3px; padding:1px 4px; border-radius:5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.ev-line.et-task{background:var(--danger-bg); color:var(--danger-dark,var(--danger));}
+.ev-line.et-milestone{background:var(--ok-bg); color:var(--sage-dark);}
+.ev-line.et-wedding{background:var(--gold); color:#fff; font-weight:700;}
+.ev-line.et-budget{background:var(--warn-bg); color:var(--warn);}
+
+.day-detail{
+  margin-top:18px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:20px;
+  box-shadow:var(--shadow);
+}
+.day-detail.hidden{display:none;}
+.day-detail h3{color:var(--rose-dark); margin-bottom:10px;}
+.dd-event{padding:10px 12px; border-radius:10px; background:var(--cream-2); margin-bottom:8px; font-size:13.5px;}
+.dd-event .dd-title{font-weight:600;}
+.dd-event .dd-note{color:var(--ink-soft); font-size:12px; margin-top:2px;}
+.dd-notes-label{font-size:13px; color:var(--ink-soft); margin:14px 0 6px;}
+.dd-notes textarea{
+  width:100%; min-height:110px; border:1px solid var(--line); border-radius:10px; padding:10px;
+  font-size:14px; resize:vertical; background:var(--cream); color:var(--ink);
+}
+.save-indicator{font-size:11px; color:var(--ok); opacity:0; transition:opacity .3s;}
+.save-indicator.show{opacity:1;}
+
+/* tables */
+.data-table-wrap{overflow-x:auto; background:var(--card); border-radius:14px; box-shadow:var(--shadow);}
+table.data-table{width:100%; border-collapse:collapse; font-size:13.5px;}
+table.data-table th{
+  background:var(--cream-2); text-align:right; padding:10px 12px; font-size:12.5px; color:var(--ink-soft);
+  cursor:pointer; white-space:nowrap; position:sticky; top:0;
+}
+table.data-table td{padding:9px 12px; border-top:1px solid var(--line); vertical-align:middle;}
+table.data-table tr:hover td{background:var(--cream-2);}
+.editable{cursor:text; border-bottom:1px dashed var(--line);}
+.editable:hover{border-bottom-color:var(--rose);}
+.pill{border-radius:20px; padding:3px 10px; font-size:11.5px; font-weight:600; color:#fff; display:inline-block; white-space:nowrap;}
+.pill-pending{background:var(--ink-soft);}
+.pill-approved{background:var(--ok);}
+.pill-declined{background:var(--danger);}
+.pill.clickable{cursor:pointer;}
+.balance-flag{background:var(--danger-bg); color:var(--danger); border-radius:20px; padding:3px 10px; font-size:11px; font-weight:700;}
+.paid-flag{background:var(--ok-bg); color:var(--ok); border-radius:20px; padding:3px 10px; font-size:11px; font-weight:700;}
+tfoot td{font-weight:700; background:var(--cream-2); border-top:2px solid var(--line);}
+
+/* modal */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(58,47,42,.45); display:flex; align-items:center; justify-content:center;
+  z-index:100; padding:20px;
+}
+.modal-box{
+  background:var(--card); border-radius:16px; padding:24px; max-width:480px; width:100%; box-shadow:0 10px 40px rgba(0,0,0,.25);
+  max-height:88vh; overflow-y:auto;
+}
+.modal-box h3{margin-bottom:16px; color:var(--rose-dark);}
+.form-row{margin-bottom:12px; display:flex; flex-direction:column; gap:4px;}
+.form-row label{font-size:12.5px; color:var(--ink-soft);}
+.form-row input, .form-row select, .form-row textarea{
+  padding:9px 11px; border:1px solid var(--line); border-radius:8px; font-size:14px; background:var(--cream); color:var(--ink);
+}
+.form-actions{display:flex; gap:10px; justify-content:flex-end; margin-top:18px;}
+.btn-secondary{background:var(--cream-2); border:1px solid var(--line); border-radius:9px; padding:9px 16px; font-size:13.5px;}
+.btn-primary{background:var(--rose); color:#fff; border:none; border-radius:9px; padding:9px 18px; font-size:13.5px; font-weight:600;}
+.btn-danger{background:var(--danger); color:#fff; border:none; border-radius:9px; padding:9px 16px; font-size:13.5px;}
+
+.funding-block{margin-top:26px;}
+.funding-block h3{font-size:16px; color:var(--sage-dark); margin-bottom:10px;}
+
+.empty-note{color:var(--ink-soft); font-size:13px; padding:12px 4px;}
+.assumption-note{
+  background:var(--warn-bg); color:var(--warn); border-radius:10px; padding:10px 14px; font-size:12.5px; margin-bottom:14px;
+}
+
+@media (max-width:900px){
+  .home-grid{grid-template-columns:1fr; grid-template-areas:"guests" "cal" "budget" "tasks";}
+  .card-tasks{max-height:480px;}
+  .cal-full-day{min-height:60px; font-size:11px;}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <button class="home-btn" id="btnHome" title="בית">🏠</button>
+    <div class="title-block">
+      <h1 id="coupleTitle">טל <span class="amp">&</span> עדי</h1>
+      <p class="subtitle" id="countdownText"></p>
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" id="btnExport" title="ייצוא גיבוי (JSON)">⬇︎</button>
+      <button class="icon-btn" id="btnImport" title="ייבוא נתונים (JSON)">⬆︎</button>
+      <button class="icon-btn" id="btnReset" title="איפוס לנתוני המקור">↺</button>
+      <input type="file" id="fileImport" accept="application/json" style="display:none">
+    </div>
+  </header>
+
+  <main id="view-home" class="view active">
+    <div class="home-grid">
+      <section class="card card-calendar" data-nav="calendar">
+        <div class="card-head"><h2>לוח שנה</h2><span class="chevron">›</span></div>
+        <div id="miniCalendar"></div>
+      </section>
+      <section class="card card-guests" data-nav="guests">
+        <div class="card-head"><h2>מוזמנים</h2><span class="chevron">›</span></div>
+        <div id="guestSummary"></div>
+      </section>
+      <section class="card card-tasks" data-nav="tasks">
+        <div class="card-head"><h2>משימות</h2><span class="chevron">›</span></div>
+        <div id="taskPanel" class="scroll-panel"></div>
+      </section>
+      <section class="card card-budget" data-nav="budget">
+        <div class="card-head"><h2>תקציב</h2><span class="chevron">›</span></div>
+        <div id="budgetSummary"></div>
+      </section>
+    </div>
+  </main>
+
+  <main id="view-tasks" class="view">
+    <div class="drill-head">
+      <button class="back-btn" data-nav="home">→ בית</button>
+      <h2>כל המשימות</h2>
+      <button class="add-btn" id="addTaskBtn">+ משימה חדשה</button>
+    </div>
+    <div class="filters" id="taskFilters"></div>
+    <div id="taskFull"></div>
+  </main>
+
+  <main id="view-calendar" class="view">
+    <div class="drill-head"><button class="back-btn" data-nav="home">→ בית</button><h2>לוח שנה מלא</h2></div>
+    <div id="calendarFull"></div>
+    <div id="dayDetail" class="day-detail hidden"></div>
+  </main>
+
+  <main id="view-guests" class="view">
+    <div class="drill-head">
+      <button class="back-btn" data-nav="home">→ בית</button>
+      <h2>רשימת מוזמנים</h2>
+      <button class="add-btn" id="addGuestBtn">+ מוזמן חדש</button>
+    </div>
+    <div class="filters" id="guestFilters"></div>
+    <div id="guestFull"></div>
+  </main>
+
+  <main id="view-budget" class="view">
+    <div class="drill-head">
+      <button class="back-btn" data-nav="home">→ בית</button>
+      <h2>תקציב מפורט</h2>
+      <button class="add-btn" id="addBudgetBtn">+ הוצאה חדשה</button>
+    </div>
+    <div id="budgetFull"></div>
+    <div class="funding-block">
+      <h3>מקורות מימון</h3>
+      <div id="fundingFull"></div>
+      <div class="drill-head" style="margin-top:12px;">
+        <button class="add-btn" id="addFundingBtn">+ מקור מימון</button>
+      </div>
+    </div>
+  </main>
+</div>
+<div id="modalRoot"></div>
+
+<script>
+const DATA_DEFAULT = {"coupleNames":{"a":"עדי","b":"טל"},"weddingDate":"2026-12-10","assumedYear":true,"guests":[{"name":"עינב ובן סיידוף","phone":null,"qty":2,"side":"עדי","category":"חברים עדי","circle":"אויו","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":0},{"name":"יובל דהאן","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"אויו","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":1},{"name":"אושר לגריסי","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"אויו","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":2},{"name":"אופק אלון","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"אויו","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":3},{"name":"זאנה של אויו","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"אויו","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":4},{"name":"ספיבק של אויו","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"אויו","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":5},{"name":"ציקול של אויו","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"אויו","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":6},{"name":"שלו של אויו","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"אויו","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":7},{"name":"אביב של אויו","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"אויו","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":8},{"name":"יונתן ראובן","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"אויו","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":9},{"name":"ניצן של אויו","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"אויו","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":10},{"name":"דן לוק","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"אויו","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":11},{"name":"עילי גרוסי","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"אויו","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":12},{"name":"שוהם נוריאל","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"אויו","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":13},{"name":"ניר דהן","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"אויו","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":14},{"name":"דבש חולי","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"אויו","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":15},{"name":"ענבר קרייזל","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"אויו","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":16},{"name":"נועם ליצי","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"אויו","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":17},{"name":"איתי נואמה","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"אויו","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":18},{"name":"יותם ויסבורט","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"אויו","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":19},{"name":"מור יניב","phone":null,"qty":1,"side":"עדי","category":"הורים עדי","circle":"רחל","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":20},{"name":"ליז יהודה","phone":null,"qty":1,"side":"עדי","category":"הורים עדי","circle":"רחל","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":21},{"name":"שמרית סרגוסטי","phone":null,"qty":1,"side":"עדי","category":"הורים עדי","circle":"רחל","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":22},{"name":"ליזי אלמודאי","phone":null,"qty":1,"side":"עדי","category":"הורים עדי","circle":"רחל","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":23},{"name":"הילה מזרחי","phone":null,"qty":1,"side":"עדי","category":"הורים עדי","circle":"רחל","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":24},{"name":"קרין וניר","phone":null,"qty":2,"side":"עדי","category":"הורים עדי","circle":"רחל","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":25},{"name":"איגור","phone":null,"qty":1,"side":"עדי","category":"הורים עדי","circle":"יגאל","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"M","status":"pending","id":26},{"name":"רינה וינקו","phone":null,"qty":2,"side":"עדי","category":"משפחה עדי","circle":"אחים","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":27},{"name":"עופר ועפרה גרויסמן","phone":null,"qty":2,"side":"עדי","category":"הורים עדי","circle":"יגאל","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":28},{"name":"דליה (אבא)","phone":null,"qty":2,"side":"עדי","category":"הורים עדי","circle":"יגאל","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":29},{"name":"מתניה (אבא)","phone":null,"qty":1,"side":"עדי","category":"הורים עדי","circle":"יגאל","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":30},{"name":"אבי מזרחי","phone":null,"qty":1,"side":"עדי","category":"הורים עדי","circle":"יגאל","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":31},{"name":"אמציה אהרונסון","phone":null,"qty":2,"side":"עדי","category":"הורים עדי","circle":"יגאל","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":32},{"name":"עמוס יניב","phone":null,"qty":2,"side":"עדי","category":"הורים עדי","circle":"יגאל","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":33},{"name":"שגיא ויונת","phone":null,"qty":2,"side":"עדי","category":"הורים עדי","circle":"רחל","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"M","status":"pending","id":34},{"name":"ברוך ולאה קושצבה","phone":null,"qty":2,"side":"עדי","category":"הורים עדי","circle":"יגאל","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":35},{"name":"אפי קסטן","phone":null,"qty":2,"side":"עדי","category":"הורים עדי","circle":"יגאל","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"M","status":"pending","id":36},{"name":"פועה וצוזי","phone":null,"qty":2,"side":"עדי","category":"הורים עדי","circle":"יגאל","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"M","status":"pending","id":37},{"name":"יעקב ואסתי עבאדה","phone":null,"qty":2,"side":"עדי","category":"הורים עדי","circle":"יגאל","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"M","status":"pending","id":38},{"name":"אורי ושיר","phone":null,"qty":2,"side":"עדי","category":"משפחה עדי","circle":"אחים","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":39},{"name":"בן ורומי","phone":null,"qty":3,"side":"עדי","category":"משפחה עדי","circle":"אחים","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":40},{"name":"אדוה ונעמה","phone":null,"qty":4,"side":"עדי","category":"משפחה עדי","circle":"אחים","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"M","status":"pending","id":41},{"name":"זיו ולירון","phone":null,"qty":6,"side":"עדי","category":"משפחה עדי","circle":"אחים","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"M","status":"pending","id":42},{"name":"איה וירון","phone":null,"qty":5,"side":"עדי","category":"משפחה עדי","circle":"אחים","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"M","status":"pending","id":43},{"name":"מיה ואיריס","phone":null,"qty":5,"side":"עדי","category":"משפחה עדי","circle":"אחים","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"M","status":"pending","id":44},{"name":"רועי ואיציק","phone":null,"qty":2,"side":"עדי","category":"משפחה עדי","circle":"אחים","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":45},{"name":"מיקי ונעמה","phone":null,"qty":2,"side":"עדי","category":"משפחה עדי","circle":"אחים","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":46},{"name":"מיה פרחיה","phone":null,"qty":1,"side":"עדי","category":"משפחה עדי","circle":"אחים עדי","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":47},{"name":"רזי ומוסיק","phone":null,"qty":2,"side":"עדי","category":"משפחה עדי","circle":"אחים עדי","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":48},{"name":"חווה ארנון","phone":null,"qty":2,"side":"עדי","category":"הורים עדי","circle":"רחל","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":49},{"name":"נירה","phone":null,"qty":2,"side":"עדי","category":"הורים עדי","circle":"רחל","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":50},{"name":"איילת דגן","phone":null,"qty":2,"side":"עדי","category":"הורים עדי","circle":"רחל","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":51},{"name":"אודי ועפרה קרייזל","phone":null,"qty":2,"side":"עדי","category":"הורים עדי","circle":"קיבוץ","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"M","status":"pending","id":52},{"name":"יעל ויובל ליצי","phone":null,"qty":2,"side":"עדי","category":"הורים עדי","circle":"קיבוץ","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"M","status":"pending","id":53},{"name":"שרון ויוני וייסבורט","phone":null,"qty":2,"side":"עדי","category":"הורים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"M","status":"pending","id":54},{"name":"מורן ורותם גרבר","phone":null,"qty":2,"side":"עדי","category":"הורים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"M","status":"pending","id":55},{"name":"שושי וויקו","phone":null,"qty":2,"side":"עדי","category":"הורים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":56},{"name":"מדלן ודוד","phone":null,"qty":2,"side":"עדי","category":"הורים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":57},{"name":"הדס ושמוליק","phone":null,"qty":2,"side":"עדי","category":"הורים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":58},{"name":"רום בר","phone":null,"qty":2,"side":"עדי","category":"הורים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":59},{"name":"ירדן ויעל","phone":null,"qty":2,"side":"עדי","category":"הורים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":60},{"name":"ליאור ואיתמר","phone":null,"qty":2,"side":"עדי","category":"הורים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":61},{"name":"אורית וניסים","phone":null,"qty":2,"side":"עדי","category":"הורים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":true,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":62},{"name":"רבקה ברדה","phone":null,"qty":1,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":true,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":63},{"name":"רחל ארביב","phone":null,"qty":1,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":true,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":64},{"name":"ים קריאף","phone":null,"qty":2,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":65},{"name":"יוגב של יעל","phone":null,"qty":2,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":66},{"name":"ירדן וגני","phone":null,"qty":2,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":67},{"name":"יעל ויעקב","phone":null,"qty":2,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":true,"inviteSent":false,"age":"מבוגרים","alcohol":"M","status":"pending","id":68},{"name":"יובל של דני","phone":null,"qty":2,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":69},{"name":"ניסים של דני","phone":null,"qty":2,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":70},{"name":"עומר של דני","phone":null,"qty":2,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":71},{"name":"דני וזהבה","phone":null,"qty":2,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":true,"inviteSent":false,"age":"מבוגרים","alcohol":"M","status":"pending","id":72},{"name":"ניב ועמית","phone":null,"qty":2,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":73},{"name":"טל של משה","phone":null,"qty":1,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":74},{"name":"משה ורינת","phone":null,"qty":2,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":true,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":75},{"name":"רינת של ויטו","phone":null,"qty":2,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"M","status":"pending","id":76},{"name":"בלהה וארז","phone":null,"qty":2,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-51","alcohol":"M","status":"pending","id":77},{"name":"ויטוריו וקלרה","phone":null,"qty":2,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":true,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":78},{"name":"ניר ישראל","phone":null,"qty":1,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"M","status":"pending","id":79},{"name":"סוני ומלי","phone":null,"qty":2,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":true,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":80},{"name":"נופר וניק","phone":null,"qty":2,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":81},{"name":"הדר ועידן","phone":null,"qty":2,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":82},{"name":"עדי חיה ואור","phone":null,"qty":2,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":83},{"name":"אביב וקרן","phone":null,"qty":2,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":84},{"name":"יוסי ומרסל","phone":null,"qty":2,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":true,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":85},{"name":"משפחת לבנת","phone":null,"qty":4,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"M","status":"pending","id":86},{"name":"אמיר ושני","phone":null,"qty":2,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"M","status":"pending","id":87},{"name":"ניצן ועינת","phone":null,"qty":3,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"M","status":"pending","id":88},{"name":"אלמוג וטל","phone":null,"qty":4,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"M","status":"pending","id":89},{"name":"גיטה וטובי","phone":null,"qty":2,"side":"עדי","category":"משפחה עדי","circle":"דודים עדי","scenario":"מצומצם","physicalInvite":true,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":90},{"name":"עבודה טל","phone":null,"qty":5,"side":"טל","category":"חברים טל","circle":"עבודה","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":91},{"name":"אריאל שין","phone":null,"qty":1,"side":"טל","category":"חברים טל","circle":"בית","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":92},{"name":"אילון אונגרסון","phone":null,"qty":1,"side":"טל","category":"חברים טל","circle":"בית","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":93},{"name":"דין צור","phone":null,"qty":2,"side":"טל","category":"חברים טל","circle":"בית","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":94},{"name":"אורי מלמד","phone":null,"qty":2,"side":"טל","category":"חברים טל","circle":"בית","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":95},{"name":"תמיר שילון","phone":null,"qty":1,"side":"טל","category":"חברים טל","circle":"בית","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":96},{"name":"אור טנר","phone":null,"qty":1,"side":"טל","category":"חברים טל","circle":"בית","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":97},{"name":"אסף שוורץ","phone":null,"qty":2,"side":"טל","category":"חברים טל","circle":"בית","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":98},{"name":"עדן ששון","phone":null,"qty":2,"side":"טל","category":"חברים טל","circle":"בית","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":99},{"name":"אסתי כהן ניסן","phone":null,"qty":1,"side":"טל","category":"חברים טל","circle":"בית","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":100},{"name":"אורטל ברנס","phone":null,"qty":1,"side":"טל","category":"חברים טל","circle":"בית","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":101},{"name":"גיא קוטלר","phone":null,"qty":1,"side":"טל","category":"חברים טל","circle":"צבא","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":102},{"name":"עופרי דגני","phone":null,"qty":2,"side":"טל","category":"חברים טל","circle":"צבא","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":103},{"name":"שקד אטל","phone":null,"qty":2,"side":"טל","category":"חברים טל","circle":"צבא","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":104},{"name":"יובל אשכנזי","phone":null,"qty":1,"side":"טל","category":"חברים טל","circle":"בית","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":105},{"name":"עדן שרעבי","phone":null,"qty":1,"side":"טל","category":"חברים טל","circle":"בית","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":106},{"name":"יובל אברהם","phone":null,"qty":2,"side":"טל","category":"חברים טל","circle":"בית","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":107},{"name":"שרון לוי","phone":null,"qty":1,"side":"טל","category":"חברים טל ועדי","circle":"לימודים","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":108},{"name":"אורי אלמוג","phone":null,"qty":2,"side":"טל","category":"חברים טל ועדי","circle":"לימודים","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":109},{"name":"שאול טולקובסקי","phone":null,"qty":2,"side":"טל","category":"חברים טל ועדי","circle":"לימודים","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":110},{"name":"ירין כהן","phone":null,"qty":2,"side":"טל","category":"חברים טל ועדי","circle":"לימודים","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":111},{"name":"ליאור ואיתי","phone":null,"qty":2,"side":"טל","category":"חברים טל ועדי","circle":"לימודים","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":112},{"name":"שחר אל חי","phone":null,"qty":1,"side":"טל","category":"חברים טל ועדי","circle":"לימודים","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":113},{"name":"לאה כהן זגורי","phone":null,"qty":2,"side":"טל","category":"חברים טל ועדי","circle":"לימודים","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":114},{"name":"תמר עטיה","phone":null,"qty":2,"side":"טל","category":"חברים טל ועדי","circle":"לימודים","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":115},{"name":"עמית פרג","phone":null,"qty":2,"side":"טל","category":"חברים טל ועדי","circle":"לימודים","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":116},{"name":"נעמה רמתי","phone":null,"qty":1,"side":"טל","category":"חברים טל ועדי","circle":"לימודים","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":117},{"name":"ברק עמור","phone":null,"qty":2,"side":"טל","category":"חברים טל ועדי","circle":"לימודים","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":118},{"name":"אלמוג אמיגה","phone":null,"qty":2,"side":"טל","category":"חברים טל ועדי","circle":"לימודים","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":119},{"name":"עומרי ויינר","phone":null,"qty":1,"side":"טל","category":"חברים טל ועדי","circle":"לימודים","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":120},{"name":"דביר זילבר","phone":null,"qty":1,"side":"טל","category":"חברים טל ועדי","circle":"לימודים","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":121},{"name":"אילן  יובל","phone":null,"qty":1,"side":"טל","category":"חברים טל ועדי","circle":"לימודים","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":122},{"name":"עבודה עדי","phone":null,"qty":15,"side":"עדי","category":"חברים עדי","circle":"עבודה","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":123},{"name":"טל ארנברג","phone":null,"qty":1,"side":"טל","category":"חברים טל ועדי","circle":"לימודים","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":124},{"name":"דניאל יוריסט","phone":null,"qty":2,"side":"טל","category":"חברים טל","circle":"בית","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":125},{"name":"יונתן קוריניק","phone":null,"qty":1,"side":"טל","category":"חברים טל","circle":"בית","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":126},{"name":"עדי פוזילוב","phone":null,"qty":1,"side":"טל","category":"חברים טל","circle":"בית","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":127},{"name":"עדנה ויעקב כהן ניסן","phone":null,"qty":1,"side":"טל","category":"חברים טל","circle":"בית","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":128},{"name":"זיו דהן","phone":null,"qty":2,"side":"עדי","category":"חברים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":129},{"name":"אמיר דהן","phone":null,"qty":2,"side":"עדי","category":"חברים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":130},{"name":"דור בר","phone":null,"qty":2,"side":"עדי","category":"חברים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":131},{"name":"שחף נואמה","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":132},{"name":"יהונתן יאיר פור","phone":null,"qty":2,"side":"עדי","category":"חברים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":133},{"name":"דביר דיין","phone":null,"qty":2,"side":"טל","category":"חברים טל","circle":"צבא","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":134},{"name":"ליאור נואמה","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":135},{"name":"עידן כהן","phone":null,"qty":2,"side":"עדי","category":"חברים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":136},{"name":"עמית קרייזל","phone":null,"qty":2,"side":"עדי","category":"חברים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":137},{"name":"עומר ויסבורט","phone":null,"qty":2,"side":"עדי","category":"חברים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":138},{"name":"עוז דרומלביץ","phone":null,"qty":2,"side":"עדי","category":"חברים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":139},{"name":"גיל תירוש","phone":null,"qty":2,"side":"טל","category":"חברים טל","circle":"בית","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":140},{"name":"טל שלין","phone":null,"qty":1,"side":"טל","category":"חברים טל","circle":"בית","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":141},{"name":"קרין ויינברגר","phone":null,"qty":1,"side":"טל","category":"חברים טל","circle":"בית","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":142},{"name":"נמרוד ויינשטיין","phone":null,"qty":1,"side":"טל","category":"חברים טל","circle":"בית","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":143},{"name":"עומר כהן","phone":null,"qty":1,"side":"טל","category":"חברים טל","circle":"בית","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":144},{"name":"אופיר ויגל דהן","phone":null,"qty":2,"side":"עדי","category":"חברים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":145},{"name":"עידו ניתאי","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":146},{"name":"נעמה בן שושן","phone":null,"qty":2,"side":"עדי","category":"חברים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":147},{"name":"נרי ליצ'י","phone":null,"qty":2,"side":"עדי","category":"חברים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":148},{"name":"שלומי מדר","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"צבא","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"M","status":"pending","id":149},{"name":"גל חן","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"צבא","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":150},{"name":"אופיר כודידה","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"צבא","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":151},{"name":"טל מנשה","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"בית","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":152},{"name":"עופרי אברמוביץ","phone":null,"qty":2,"side":"עדי","category":"חברים עדי","circle":"בית","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":153},{"name":"לורן אליהו","phone":null,"qty":2,"side":"עדי","category":"חברים עדי","circle":"בית","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":154},{"name":"אלעזר לנקרי","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"צבא","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":155},{"name":"דוד מנחם","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"צבא","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"M","status":"pending","id":156},{"name":"שני פרל","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"M","status":"pending","id":157},{"name":"מעיין ויסבורט","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-51","alcohol":"M","status":"pending","id":158},{"name":"נעמי יאיר","phone":null,"qty":2,"side":"עדי","category":"חברים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-52","alcohol":"M","status":"pending","id":159},{"name":"מתן מצרי","phone":null,"qty":2,"side":"עדי","category":"חברים עדי","circle":"צבא","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":160},{"name":"אור שמש","phone":null,"qty":1,"side":"טל","category":"חברים טל","circle":"יובל","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":161},{"name":"רז שרעבי","phone":null,"qty":1,"side":"טל","category":"חברים טל","circle":"יובל","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":162},{"name":"דין חגי","phone":null,"qty":1,"side":"טל","category":"חברים טל","circle":"יובל","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":163},{"name":"גיא חנין","phone":null,"qty":1,"side":"טל","category":"חברים טל","circle":"יובל","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":164},{"name":"רוי דנון","phone":null,"qty":1,"side":"טל","category":"חברים טל","circle":"יובל","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":165},{"name":"יונתן גולדווסר","phone":null,"qty":1,"side":"טל","category":"חברים טל","circle":"יובל","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":166},{"name":"עמית צעדה","phone":null,"qty":1,"side":"טל","category":"חברים טל","circle":"יובל","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":167},{"name":"שלומית אליעזר","phone":"050-7953655","qty":2,"side":"טל","category":"הורים טל","circle":"משפחה ורד","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":168},{"name":"רותי ומוטי לחמי","phone":"050-2052175","qty":4,"side":"טל","category":"הורים טל","circle":"משפחה ורד","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":169},{"name":"עידית","phone":"050-4061050","qty":1,"side":"טל","category":"הורים טל","circle":"משפחה ורד","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":170},{"name":"סילביה לחמי","phone":"052-3663660","qty":1,"side":"טל","category":"הורים טל","circle":"משפחה ורד","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":171},{"name":"נעמי ואמנון ענתבי","phone":"050-6298141","qty":2,"side":"טל","category":"הורים טל","circle":"משפחה ורד","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":172},{"name":"נילי קוצר","phone":"054-4886474","qty":1,"side":"טל","category":"הורים טל","circle":"משפחה איתן","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":173},{"name":"הדר קוצר","phone":"054-6676559","qty":2,"side":"טל","category":"הורים טל","circle":"משפחה איתן","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":174},{"name":"ארז לוי","phone":"050-4003640","qty":2,"side":"טל","category":"הורים טל","circle":"משפחה איתן","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":175},{"name":"איציק לוי","phone":"052-2592867","qty":2,"side":"טל","category":"הורים טל","circle":"משפחה איתן","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":176},{"name":"עופר לוי","phone":"058-6288900","qty":2,"side":"טל","category":"הורים טל","circle":"משפחה איתן","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":177},{"name":"ארז שושני","phone":"058-7112770","qty":1,"side":"טל","category":"הורים טל","circle":"חברים הורים טל","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":178},{"name":"שי וקרין ורקר","phone":"052-2779578","qty":2,"side":"טל","category":"הורים טל","circle":"חברים הורים טל","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"M","status":"pending","id":179},{"name":"מיכאל","phone":"053-7266888","qty":2,"side":"טל","category":"הורים טל","circle":"עבודה איתן","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":180},{"name":"גיל זרמני","phone":"052-5115116","qty":2,"side":"טל","category":"הורים טל","circle":"עבודה איתן","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"M","status":"pending","id":181},{"name":"שי שחם","phone":"050-8444001","qty":2,"side":"טל","category":"הורים טל","circle":"חברים הורים טל","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":182},{"name":"אריה גולדשטיין ומשפחה","phone":"052-3560018","qty":5,"side":"טל","category":"הורים טל","circle":"משפחה איתן","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":183},{"name":"מירי גולדשטיין ומשפחה","phone":"054-2390410","qty":6,"side":"טל","category":"הורים טל","circle":"משפחה איתן","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":184},{"name":"סאלי אבידן","phone":"050-8549420","qty":1,"side":"טל","category":"הורים טל","circle":"משפחה איתן","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":185},{"name":"ציפי מרום","phone":"052-8432711","qty":1,"side":"טל","category":"הורים טל","circle":"משפחה איתן","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":186},{"name":"דפנה ושי אבידן","phone":"054-8349885","qty":2,"side":"טל","category":"הורים טל","circle":"משפחה איתן","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":187},{"name":"אייל","phone":null,"qty":1,"side":"טל","category":"הורים טל","circle":"משפחה ורד","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"M","status":"pending","id":188},{"name":"שמרית","phone":null,"qty":2,"side":"טל","category":"הורים טל","circle":"משפחה ורד","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":189},{"name":"בשמת","phone":null,"qty":2,"side":"טל","category":"הורים טל","circle":"משפחה ורד","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":190},{"name":"ג'ודי","phone":null,"qty":1,"side":"טל","category":"הורים טל","circle":"משפחה ורד","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":191},{"name":"ירון","phone":null,"qty":2,"side":"טל","category":"הורים טל","circle":"משפחה ורד","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":192},{"name":"תמר","phone":null,"qty":2,"side":"טל","category":"הורים טל","circle":"משפחה ורד","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":193},{"name":"דורון","phone":null,"qty":2,"side":"טל","category":"הורים טל","circle":"משפחה ורד","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":194},{"name":"נועה","phone":null,"qty":1,"side":"טל","category":"הורים טל","circle":"משפחה ורד","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":195},{"name":"שירלי","phone":null,"qty":2,"side":"טל","category":"הורים טל","circle":"משפחה ורד","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":196},{"name":"אסנת ועודד","phone":null,"qty":2,"side":"טל","category":"הורים טל","circle":"חברים הורים טל","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"M","status":"pending","id":197},{"name":"נגה ויובל","phone":null,"qty":2,"side":"טל","category":"הורים טל","circle":"יובל","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":198},{"name":"פשרל אירית ואריק","phone":null,"qty":2,"side":"טל","category":"הורים טל","circle":"משפחה ורד","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":199},{"name":"פשרל רועי","phone":null,"qty":2,"side":"טל","category":"הורים טל","circle":"משפחה ורד","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":200},{"name":"פשרל עדי","phone":null,"qty":2,"side":"טל","category":"הורים טל","circle":"משפחה ורד","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"M","status":"pending","id":201},{"name":"פשרל ערן","phone":null,"qty":2,"side":"טל","category":"הורים טל","circle":"משפחה ורד","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":202},{"name":"אבי ישראלי","phone":null,"qty":3,"side":"טל","category":"הורים טל","circle":"משפחה ורד","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":203},{"name":"אופיר ישראלי","phone":null,"qty":2,"side":"טל","category":"הורים טל","circle":"משפחה ורד","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":204},{"name":"חן ישראלי","phone":null,"qty":2,"side":"טל","category":"הורים טל","circle":"משפחה ורד","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":205},{"name":"חוה וחנן","phone":null,"qty":2,"side":"טל","category":"הורים טל","circle":"משפחה איתן","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":206},{"name":"תמי וצביקה מרום","phone":null,"qty":2,"side":"טל","category":"הורים טל","circle":"משפחה איתן","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"M","status":"pending","id":207},{"name":"יונתן לוי בן הרוש","phone":null,"qty":1,"side":"טל","category":"הורים טל","circle":"משפחה איתן","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":208},{"name":"מישל","phone":null,"qty":2,"side":"טל","category":"הורים טל","circle":"משפחה איתן","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":209},{"name":"בנימין","phone":null,"qty":2,"side":"טל","category":"הורים טל","circle":"משפחה איתן","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":210},{"name":"אתי ושלום אריה","phone":"050-5241431","qty":2,"side":"טל","category":"הורים טל","circle":"חברים הורים טל","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":211},{"name":"אפרת","phone":"052-5617841","qty":1,"side":"טל","category":"הורים טל","circle":"עבודה ורד","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"מבוגרים","alcohol":"L","status":"pending","id":212},{"name":"ורוניקה","phone":null,"qty":1,"side":"טל","category":"הורים טל","circle":"עבודה ורד","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":213},{"name":"ליאורה","phone":null,"qty":1,"side":"טל","category":"הורים טל","circle":"עבודה ורד","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":214},{"name":"תמי","phone":null,"qty":1,"side":"טל","category":"הורים טל","circle":"עבודה ורד","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":215},{"name":"עופרה","phone":null,"qty":1,"side":"טל","category":"הורים טל","circle":"עבודה ורד","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":216},{"name":"יוספה","phone":"050-7646016","qty":2,"side":"טל","category":"הורים טל","circle":"עבודה ורד","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":217},{"name":"גילה","phone":null,"qty":1,"side":"טל","category":"הורים טל","circle":"עבודה ורד","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":218},{"name":"הדר","phone":null,"qty":1,"side":"טל","category":"הורים טל","circle":"עבודה ורד","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":219},{"name":"יניב","phone":null,"qty":1,"side":"טל","category":"הורים טל","circle":"עבודה ורד","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":220},{"name":"אמיר","phone":null,"qty":1,"side":"טל","category":"הורים טל","circle":"עבודה ורד","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":221},{"name":"מיכה","phone":null,"qty":1,"side":"טל","category":"הורים טל","circle":"עבודה ורד","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":222},{"name":"מאור","phone":null,"qty":1,"side":"טל","category":"הורים טל","circle":"עבודה ורד","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":223},{"name":"שני","phone":null,"qty":1,"side":"טל","category":"הורים טל","circle":"עבודה ורד","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":224},{"name":"ניר","phone":null,"qty":1,"side":"טל","category":"הורים טל","circle":"עבודה ורד","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":225},{"name":"גלית","phone":null,"qty":1,"side":"טל","category":"הורים טל","circle":"עבודה ורד","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":226},{"name":"זוהר","phone":"053-7550406","qty":2,"side":"טל","category":"הורים טל","circle":"עבודה ורד","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":227},{"name":"רועי","phone":null,"qty":1,"side":"טל","category":"הורים טל","circle":"עבודה ורד","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"40-50","alcohol":"L","status":"pending","id":228},{"name":"טל גולן","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":229},{"name":"אליה ארז","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":230},{"name":"יותם לובטון","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"קיבוץ","scenario":"מצומצם","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"H","status":"pending","id":231},{"name":"דוד צוקרמן","phone":null,"qty":1,"side":"טל","category":"חברים טל","circle":"יובל","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":232},{"name":"עדי וייסבורט","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"אויו","scenario":"מורחב","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":233},{"name":"מיכל דהן","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"קיבוץ","scenario":"","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"L","status":"pending","id":234},{"name":"ירדן ששון","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"צבא","scenario":"","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"L","status":"pending","id":235},{"name":"יובל בוחבוט","phone":null,"qty":1,"side":"עדי","category":"חברים עדי","circle":"בית","scenario":"","physicalInvite":false,"inviteSent":false,"age":"צעירים","alcohol":"M","status":"pending","id":236}],"tasks":[{"id":1,"category":"ליבה ארגונית","text":"רשימת מוזמנים - לעבור, לעדכן, להוסיף מספרי טלפון","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":2,"category":"ליבה ארגונית","text":"לסגור אתר חתונה מול WELCOME","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":3,"category":"ליבה ארגונית","text":"לעצב הזמנות","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":4,"category":"ליבה ארגונית","text":"סדר בתשלומים לספקים - מה שולם, מה נשאר","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":5,"category":"ליבה ארגונית","text":"לבנות לוז לאירוע","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":6,"category":"ליבה ארגונית","text":"לבנות לוז להתארגנות","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":7,"category":"חופה","text":"לכתוב כתובה","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":8,"category":"חופה","text":"להחליט על מברכים בחופה (עדים, מחזיקי חופה, מברכים) ולהודיע להם","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":9,"category":"חופה","text":"לקבוע תאריך לפגישה נוספת עם עורכת הטקס","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":10,"category":"חופה","text":"להחליט על שיר כניסה","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":11,"category":"חופה","text":"להחליט על שיר שבירת כוס","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":12,"category":"חופה","text":"להחליט על שיר סיום","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":13,"category":"ספקים ואולם","text":"פגישה עם אורון (דיג'יי)","urgency":"high","deadline":"2026-11-10","status":"not_started","note":"כחודש לפני החתונה"},{"id":14,"category":"ספקים ואולם","text":"פגישה עם אביעד (צלם)","urgency":"high","deadline":"2026-11-10","status":"not_started","note":"כחודש לפני החתונה"},{"id":15,"category":"ספקים ואולם","text":"לסגור מקום צילום עם אביעד","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":16,"category":"ספקים ואולם","text":"להכין רשימת תמונות משפחה לאביעד","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":17,"category":"ספקים ואולם","text":"פגישה עם נועה (מפיקה)","urgency":"high","deadline":"2026-11-10","status":"not_started","note":"כחודש לפני החתונה"},{"id":18,"category":"ספקים ואולם","text":"פגישה עם נועה (שיער של עדי)","urgency":"high","deadline":"2026-11-10","status":"not_started","note":"כחודש לפני החתונה"},{"id":19,"category":"ספקים ואולם","text":"פגישה עם נועה (איפור)","urgency":"high","deadline":"2026-11-10","status":"not_started","note":"כחודש לפני החתונה"},{"id":20,"category":"ספקים ואולם","text":"פגישה עם ים (מעצבת)","urgency":"high","deadline":"2026-11-10","status":"not_started","note":"כחודש לפני החתונה"},{"id":21,"category":"ספקים ואולם","text":"פגישה עם רויה (צלמת וידאו)","urgency":"high","deadline":"2026-11-10","status":"not_started","note":"כחודש לפני החתונה"},{"id":22,"category":"ספקים ואולם","text":"פגישה עם השף","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":23,"category":"ספקים ואולם","text":"פגישה משותפת עם המפיקה מטעמנו ומטעם האולם","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":24,"category":"ספקים ואולם","text":"לקבוע מתי טעימות","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":25,"category":"ספקים ואולם","text":"למצוא ספק מיץ גת ולסגור מול האולם","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":26,"category":"ספקים ואולם","text":"להחליף את הצ'קים שהופקדו כעירבון לאולם","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":27,"category":"ספקים ואולם","text":"להעביר פלייליסטים לאורון","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":28,"category":"בר ואלכוהול","text":"לדבר עם מנהל הבר באביגדור על מחיר לחבילת הרחבת אלכוהול","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":29,"category":"בר ואלכוהול","text":"אם לא - לקנות אלכוהול בעצמנו ולהבין סדר גודל (כמויות וסוגים)","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":30,"category":"חוויה ודקור","text":"גפרורים ממותגים - למצוא ספק, לעצב, להדפיס","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":31,"category":"חוויה ודקור","text":"פינת ברכות - להחליט על עיצוב ואינסטרומנטים","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":32,"category":"חוויה ודקור","text":"עמדת סיגריות - להבין קונספט","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":33,"category":"חוויה ודקור","text":"גומי - להחליט על הלוק ולקנות","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":34,"category":"חוויה ודקור","text":"הדלקת נרות חנוכה - להחליט תזמון, שלב באירוע, ואיך ייראה הטקס","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":35,"category":"לוגיסטיקה","text":"מלון ללילת החופה - לסגור","urgency":"urgent","deadline":null,"status":"not_started","note":"דחוף"},{"id":36,"category":"לוגיסטיקה","text":"רכבים ליום החתונה - למצוא","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":37,"category":"לוגיסטיקה","text":"אוכל להתארגנות של עדי - מגשי אירוח לסגור","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":38,"category":"לבוש וטיפוח","text":"בגדים לחתן - לסגור","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":39,"category":"לבוש וטיפוח","text":"טיפול פנים לחתן - לסגור","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":40,"category":"לבוש וטיפוח","text":"מניקור ופדיקור לחתן - לסגור","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":41,"category":"תכשיטים","text":"תכשיטים לעדי","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":42,"category":"תכשיטים","text":"טבעות נישואין - לקנות","urgency":"medium","deadline":null,"status":"not_started","note":null},{"id":43,"category":"קרוב לתאריך","text":"סידורי הושבה","urgency":"high","deadline":"2026-11-26","status":"not_started","note":"שבועיים לפני החתונה"},{"id":44,"category":"במעקב (לא באחריות ישירה)","text":"הסכם ממון - להתחיל לבדוק ולקדם","urgency":"low","deadline":null,"status":"not_started","note":null},{"id":45,"category":"במעקב (לא באחריות ישירה)","text":"חינה","urgency":"low","deadline":"2026-11-14","status":"not_started","note":"מאורגן ע\"י המשפחות"},{"id":46,"category":"במעקב (לא באחריות ישירה)","text":"שבת חתן","urgency":"low","deadline":"2026-12-05","status":"not_started","note":"מאורגן ע\"י המשפחות"},{"id":47,"category":"במעקב (לא באחריות ישירה)","text":"הפרשת חלה","urgency":"low","deadline":"2026-11-26","status":"not_started","note":"מאורגן ע\"י המשפחות"}],"budgetItems":[{"vendor":"אולם","category":"מקום ואולם","cost":186139,"paid":37200,"remaining":148939,"dueDate":"2026-12-10"},{"vendor":"חניה","category":"מקום ואולם","cost":3540,"paid":0,"remaining":3540,"dueDate":"2026-12-10"},{"vendor":"אוכל אפטר / עמדת אפטר","category":"קייטרינג","cost":4956,"paid":0,"remaining":4956,"dueDate":"2026-12-10"},{"vendor":"דיג'יי","category":"הפקה ובידור","cost":8000,"paid":0,"remaining":8000,"dueDate":"2026-12-10"},{"vendor":"צלם","category":"צילום","cost":9300,"paid":1000,"remaining":8300,"dueDate":"2026-12-10"},{"vendor":"צלם וידאו","category":"צילום","cost":6250,"paid":1250,"remaining":5000,"dueDate":"2026-12-10"},{"vendor":"שיער","category":"לוק ואיפור","cost":3600,"paid":200,"remaining":3400,"dueDate":"2026-12-10"},{"vendor":"איפור","category":"לוק ואיפור","cost":2500,"paid":0,"remaining":2500,"dueDate":"2026-12-10"},{"vendor":"מנהלת אירוע (הפקה)","category":"הפקה ובידור","cost":3540,"paid":500,"remaining":3040,"dueDate":"2026-12-10"},{"vendor":"עיצוב","category":"עיצוב ודקור","cost":17200,"paid":4500,"remaining":12700,"dueDate":"2026-12-10"},{"vendor":"שמלת כלה","category":"לבוש","cost":15000,"paid":0,"remaining":15000,"dueDate":"2026-12-10"},{"vendor":"בגדים לחתן","category":"לבוש","cost":2000,"paid":0,"remaining":2000,"dueDate":"2026-12-10"},{"vendor":"מנהל טקס","category":"טקס","cost":4000,"paid":0,"remaining":4000,"dueDate":"2026-12-10"},{"vendor":"טבעות","category":"תכשיטים","cost":3000,"paid":0,"remaining":3000,"dueDate":"2026-12-10"},{"vendor":"אלכוהול","category":"בר","cost":2000,"paid":0,"remaining":2000,"dueDate":"2026-12-10"},{"vendor":"אישורי הגעה (הדפסה)","category":"הפקה ובידור","cost":550,"paid":0,"remaining":550,"dueDate":"2026-12-10"},{"vendor":"צ'יז איי איי","category":"קייטרינג","cost":580,"paid":0,"remaining":580,"dueDate":"2026-12-10"}],"funding":[{"source":"יגאל","pledged":50000,"received":35000,"note":"נכנס למשותף"},{"source":"הורים טל","pledged":50000,"received":18000,"note":null},{"source":"קיבוץ","pledged":48200,"received":48200,"note":"נכנס לעדי"}],"extraEvents":[{"date":"2026-11-14","type":"milestone","title":"רווקות","note":"ערב רווקות של עדי"},{"date":"2026-11-14","type":"milestone","title":"רווקים","note":"ערב רווקים של טל"},{"date":"2026-12-07","type":"milestone","title":"מקווה","note":"טבילת עדי לקראת החתונה"},{"date":"2026-12-10","type":"wedding","title":"החתונה!","note":"היום הגדול - טל ועדי"},{"date":"2026-12-10","type":"milestone","title":"מדבר","note":"פריט מהגאנט המקורי - כדאי לוודא פרטים"}]};
+</script>
+<script>
+/* ---------- constants ---------- */
+const STORAGE_KEY = 'weddingDashboard_v1';
+const HEBREW_MONTHS = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+const HEBREW_DOW = ['א','ב','ג','ד','ה','ו','ש'];
+const URGENCY_ORDER = {urgent:0, high:1, medium:2, low:3};
+const URGENCY_LABEL = {urgent:'דחוף', high:'גבוהה', medium:'בינונית', low:'נמוכה'};
+const STATUS_LABEL = {not_started:'טרם התחיל', in_progress:'בתהליך', done:'הושלם'};
+const GSTATUS_LABEL = {pending:'ממתין', approved:'מאושר', declined:'לא מגיע'};
+const CATEGORIES = ['ליבה ארגונית','חופה','ספקים ואולם','בר ואלכוהול','חוויה ודקור','לוגיסטיקה','לבוש וטיפוח','תכשיטים','קרוב לתאריך','במעקב (לא באחריות ישירה)'];
+
+/* ---------- state ---------- */
+let STATE = null;
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(parsed && Array.isArray(parsed.guests)) return parsed;
+    }
+  }catch(e){ console.warn('state load failed', e); }
+  const fresh = JSON.parse(JSON.stringify(DATA_DEFAULT));
+  fresh.notes = fresh.notes || {};
+  return fresh;
+}
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE));
+}
+function nextId(arr){
+  return arr.reduce((m,x)=>Math.max(m, x.id||0), 0) + 1;
+}
+function fmt(n){
+  return Math.round(n).toLocaleString('he-IL');
+}
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function parseDate(s){
+  const [y,m,d] = s.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+function formatHeDate(s){
+  const d = parseDate(s);
+  return d.getDate()+' ב'+HEBREW_MONTHS[d.getMonth()]+' '+d.getFullYear();
+}
+
+/* ---------- CRUD ---------- */
+function addGuest(obj){ obj.id = nextId(STATE.guests); STATE.guests.push(obj); saveState(); }
+function updateGuest(id, patch){ const g = STATE.guests.find(x=>x.id===id); if(g){ Object.assign(g, patch); saveState(); } }
+function deleteGuest(id){ STATE.guests = STATE.guests.filter(x=>x.id!==id); saveState(); }
+function cycleGuestStatus(id){
+  const g = STATE.guests.find(x=>x.id===id); if(!g) return;
+  const order = ['pending','approved','declined'];
+  g.status = order[(order.indexOf(g.status)+1)%order.length];
+  saveState();
+}
+
+function addTask(obj){ obj.id = nextId(STATE.tasks); obj.status = obj.status || 'not_started'; STATE.tasks.push(obj); saveState(); }
+function updateTask(id, patch){ const t = STATE.tasks.find(x=>x.id===id); if(t){ Object.assign(t, patch); saveState(); } }
+function deleteTask(id){ STATE.tasks = STATE.tasks.filter(x=>x.id!==id); saveState(); }
+function cycleTaskStatus(id){
+  const t = STATE.tasks.find(x=>x.id===id); if(!t) return;
+  const order = ['not_started','in_progress','done'];
+  t.status = order[(order.indexOf(t.status)+1)%order.length];
+  saveState();
+}
+
+function addBudgetItem(obj){ obj.id = nextId(STATE.budgetItems); obj.remaining = (obj.cost||0)-(obj.paid||0); STATE.budgetItems.push(obj); saveState(); }
+function updateBudgetItem(id, patch){
+  const b = STATE.budgetItems.find(x=>x.id===id); if(!b) return;
+  Object.assign(b, patch);
+  b.remaining = (b.cost||0) - (b.paid||0);
+  saveState();
+}
+function deleteBudgetItem(id){ STATE.budgetItems = STATE.budgetItems.filter(x=>x.id!==id); saveState(); }
+
+function addFunding(obj){ obj.id = nextId(STATE.funding); STATE.funding.push(obj); saveState(); }
+function updateFunding(id, patch){ const f = STATE.funding.find(x=>x.id===id); if(f){ Object.assign(f, patch); saveState(); } }
+function deleteFunding(id){ STATE.funding = STATE.funding.filter(x=>x.id!==id); saveState(); }
+
+/* ---------- derived ---------- */
+function guestTotals(){
+  const t = {total:0, pending:0, approved:0, declined:0, bySide:{}};
+  STATE.guests.forEach(g=>{
+    t.total += g.qty||1;
+    t[g.status] = (t[g.status]||0) + (g.qty||1);
+    const s = g.side || 'לא צוין';
+    t.bySide[s] = t.bySide[s] || {total:0, pending:0, approved:0, declined:0};
+    t.bySide[s].total += g.qty||1;
+    t.bySide[s][g.status] = (t.bySide[s][g.status]||0) + (g.qty||1);
+  });
+  return t;
+}
+function sortedTasks(list){
+  return [...list].sort((a,b)=>{
+    if(a.status!==b.status){ const so={not_started:0,in_progress:1,done:2}; return so[a.status]-so[b.status]; }
+    const ua = URGENCY_ORDER[a.urgency]??2, ub = URGENCY_ORDER[b.urgency]??2;
+    if(ua!==ub) return ua-ub;
+    if(a.deadline && b.deadline) return a.deadline.localeCompare(b.deadline);
+    if(a.deadline) return -1;
+    if(b.deadline) return 1;
+    return 0;
+  });
+}
+function budgetTotals(){
+  const cost = STATE.budgetItems.reduce((s,b)=>s+(b.cost||0),0);
+  const paid = STATE.budgetItems.reduce((s,b)=>s+(b.paid||0),0);
+  return {cost, paid, remaining: cost-paid};
+}
+function eventsForDate(dateStr){
+  const evs = [];
+  STATE.tasks.forEach(t=>{ if(t.deadline===dateStr) evs.push({type:'task', title:t.text, note:t.note, taskId:t.id}); });
+  (STATE.extraEvents||[]).forEach(e=>{ if(e.date===dateStr) evs.push({type:e.type, title:e.title, note:e.note}); });
+  STATE.budgetItems.forEach(b=>{ if(b.dueDate===dateStr && b.remaining>0) evs.push({type:'budget', title:'תשלום לספק: '+b.vendor, note:'יתרה לתשלום: ₪'+fmt(b.remaining)}); });
+  return evs;
+}
+function allEventDates(){
+  const set = new Set();
+  STATE.tasks.forEach(t=>{ if(t.deadline) set.add(t.deadline); });
+  (STATE.extraEvents||[]).forEach(e=>set.add(e.date));
+  STATE.budgetItems.forEach(b=>{ if(b.dueDate && b.remaining>0) set.add(b.dueDate); });
+  return set;
+}
+
+/* ---------- navigation ---------- */
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>{
+    if(v.id===id){
+      v.style.display='block';
+      requestAnimationFrame(()=>v.classList.add('visible'));
+    } else {
+      v.classList.remove('visible');
+      setTimeout(()=>{ if(!v.classList.contains('visible')) v.style.display='none'; }, 260);
+    }
+  });
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function nav(name){
+  const map = {home:'view-home', tasks:'view-tasks', calendar:'view-calendar', guests:'view-guests', budget:'view-budget'};
+  showView(map[name]);
+  if(name==='tasks') renderTaskFull();
+  if(name==='calendar') renderCalendarFull();
+  if(name==='guests') renderGuestFull();
+  if(name==='budget') renderBudgetFull();
+  if(name==='home') renderHome();
+}
+
+/* ---------- modal helper ---------- */
+function openModal(title, fieldsHtml, onSave, extraButtons){
+  const root = document.getElementById('modalRoot');
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `<div class="modal-box">
+    <h3>${title}</h3>
+    <form id="modalForm">${fieldsHtml}</form>
+    <div class="form-actions">
+      ${extraButtons||''}
+      <button type="button" class="btn-secondary" id="modalCancel">ביטול</button>
+      <button type="button" class="btn-primary" id="modalSave">שמירה</button>
+    </div>
+  </div>`;
+  root.appendChild(overlay);
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) root.removeChild(overlay); });
+  overlay.querySelector('#modalCancel').addEventListener('click', ()=>root.removeChild(overlay));
+  overlay.querySelector('#modalSave').addEventListener('click', ()=>{
+    const form = overlay.querySelector('#modalForm');
+    const data = {};
+    form.querySelectorAll('[data-field]').forEach(el=>{
+      data[el.dataset.field] = el.type==='number' ? (parseFloat(el.value)||0) : el.value.trim();
+    });
+    onSave(data);
+    root.removeChild(overlay);
+  });
+  return overlay;
+}
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ================= HOME ================= */
+function renderHome(){
+  renderCountdown();
+  renderMiniCalendar();
+  renderGuestSummary();
+  renderTaskPanel();
+  renderBudgetSummary();
+}
+function renderCountdown(){
+  const wd = parseDate(STATE.weddingDate);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diffDays = Math.round((wd-today)/86400000);
+  const el = document.getElementById('countdownText');
+  if(diffDays>0) el.textContent = `${formatHeDate(STATE.weddingDate)} · עוד ${diffDays} ימים לחתונה`;
+  else if(diffDays===0) el.textContent = `היום זה הרגע! מזל טוב 🎉`;
+  else el.textContent = `${formatHeDate(STATE.weddingDate)} · מזל טוב באיחור של ${-diffDays} ימים!`;
+}
+
+let miniCalMonth = null;
+function initMiniCalMonth(){
+  const dates = [...allEventDates()].sort();
+  const today = todayStr();
+  const upcoming = dates.find(d=>d>=today);
+  const base = upcoming ? parseDate(upcoming) : new Date();
+  miniCalMonth = {y:base.getFullYear(), m:base.getMonth()};
+}
+function buildMonthCells(y,m){
+  const first = new Date(y,m,1);
+  const startDow = first.getDay();
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  const cells = [];
+  for(let i=0;i<startDow;i++){
+    const d = new Date(y,m,1-(startDow-i));
+    cells.push({date:d, out:true});
+  }
+  for(let d=1; d<=daysInMonth; d++) cells.push({date:new Date(y,m,d), out:false});
+  while(cells.length%7!==0 || cells.length<42){
+    const last = cells[cells.length-1].date;
+    const d = new Date(last); d.setDate(d.getDate()+1);
+    cells.push({date:d, out:true});
+    if(cells.length>=42) break;
+  }
+  return cells;
+}
+function dstr(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
+function renderMiniCalendar(){
+  if(!miniCalMonth) initMiniCalMonth();
+  const {y,m} = miniCalMonth;
+  const cells = buildMonthCells(y,m);
+  const today = todayStr();
+  let html = `<div class="mini-cal-nav">
+    <button data-mcal="prev">‹</button>
+    <span>${HEBREW_MONTHS[m]} ${y}</span>
+    <button data-mcal="next">›</button>
+  </div><div class="cal-grid">`;
+  HEBREW_DOW.forEach(d=>html+=`<div class="cal-dow">${d}</div>`);
+  cells.forEach(c=>{
+    const ds = dstr(c.date);
+    const evs = eventsForDate(ds);
+    const types = new Set(evs.map(e=>e.type));
+    let dots = '';
+    ['wedding','task','milestone','budget'].forEach(t=>{ if(types.has(t)) dots += `<span class="dot dot-${t}"></span>`; });
+    html += `<div class="cal-day ${c.out?'out':''} ${ds===today?'today':''}" data-date="${ds}">
+      ${c.date.getDate()}
+      <div class="dot-row">${dots}</div>
+    </div>`;
+  });
+  html += `</div><div class="cal-legend">
+    <span><i class="dot dot-wedding" style="display:inline-block;width:7px;height:7px;border-radius:50%;"></i>חתונה</span>
+    <span><i class="dot dot-task" style="display:inline-block;width:7px;height:7px;border-radius:50%;"></i>משימה</span>
+    <span><i class="dot dot-milestone" style="display:inline-block;width:7px;height:7px;border-radius:50%;"></i>אירוע</span>
+    <span><i class="dot dot-budget" style="display:inline-block;width:7px;height:7px;border-radius:50%;"></i>תשלום</span>
+  </div>`;
+  document.getElementById('miniCalendar').innerHTML = html;
+  document.querySelectorAll('#miniCalendar [data-mcal]').forEach(b=>{
+    b.addEventListener('click', e=>{
+      e.stopPropagation();
+      miniCalMonth.m += (b.dataset.mcal==='next'?1:-1);
+      if(miniCalMonth.m<0){miniCalMonth.m=11;miniCalMonth.y--;}
+      if(miniCalMonth.m>11){miniCalMonth.m=0;miniCalMonth.y++;}
+      renderMiniCalendar();
+    });
+  });
+  document.querySelectorAll('#miniCalendar .cal-day').forEach(d=>{
+    d.addEventListener('click', e=>{
+      e.stopPropagation();
+      nav('calendar');
+      setTimeout(()=>openDayDetail(d.dataset.date), 50);
+    });
+  });
+}
+
+function renderGuestSummary(){
+  const t = guestTotals();
+  let html = `<div class="stat-row">
+    <div class="stat-box"><div class="num">${fmt(t.total)}</div><div class="lbl">סה"כ מוזמנים</div></div>
+    <div class="stat-box"><div class="num">${fmt(t.approved||0)}</div><div class="lbl">מאושרים</div></div>
+    <div class="stat-box"><div class="num">${fmt(t.pending||0)}</div><div class="lbl">ממתינים</div></div>
+    <div class="stat-box"><div class="num">${fmt(t.declined||0)}</div><div class="lbl">לא מגיעים</div></div>
+  </div><div class="side-bars">`;
+  const colors = ['var(--rose)','var(--sage)','var(--gold)'];
+  Object.keys(t.bySide).forEach((side,i)=>{
+    const s = t.bySide[side];
+    const pct = t.total? Math.round(s.total/t.total*100):0;
+    html += `<div class="side-bar-row">
+      <div class="side-bar-name">${esc(side)}</div>
+      <div class="side-bar-track"><div class="side-bar-fill" style="width:${pct}%; background:${colors[i%colors.length]};"></div></div>
+      <div class="side-bar-num">${fmt(s.total)} (${pct}%)</div>
+    </div>`;
+  });
+  html += `</div>`;
+  document.getElementById('guestSummary').innerHTML = html;
+}
+
+function renderTaskPanel(){
+  const list = sortedTasks(STATE.tasks);
+  let html = '';
+  list.forEach(t=>{
+    html += `<div class="task-row status-${t.status} urgency-${t.urgency}" data-task="${t.id}">
+      <div class="task-dot"></div>
+      <div class="task-body">
+        <span class="task-text">${esc(t.text)}</span>
+        <div class="task-meta"><span class="task-cat-tag">${esc(t.category)}</span>${t.deadline?`<span>${formatHeDate(t.deadline)}</span>`:''}</div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('taskPanel').innerHTML = html || '<div class="empty-note">אין משימות עדיין</div>';
+  document.querySelectorAll('#taskPanel [data-task]').forEach(row=>{
+    row.addEventListener('click', e=>{
+      e.stopPropagation();
+      cycleTaskStatus(parseInt(row.dataset.task));
+      renderTaskPanel();
+    });
+  });
+}
+
+function renderBudgetSummary(){
+  const b = budgetTotals();
+  const pct = b.cost? Math.min(100, Math.round(b.paid/b.cost*100)) : 0;
+  document.getElementById('budgetSummary').innerHTML = `
+    <div class="budget-progress"><div class="budget-progress-fill" style="width:${pct}%"></div></div>
+    <div class="budget-nums">
+      <div><b>₪${fmt(b.paid)}</b>שולם עד כה</div>
+      <div style="text-align:left"><b>₪${fmt(b.remaining)}</b>נותר לתשלום</div>
+    </div>`;
+}
+
+/* ================= TASKS FULL ================= */
+let taskFilterState = {category:'all', urgency:'all', status:'all'};
+function renderTaskFilters(){
+  const el = document.getElementById('taskFilters');
+  el.innerHTML = `
+    <select id="fCat"><option value="all">כל הקטגוריות</option>${CATEGORIES.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select>
+    <select id="fUrg"><option value="all">כל רמות הדחיפות</option>${Object.keys(URGENCY_LABEL).map(u=>`<option value="${u}">${URGENCY_LABEL[u]}</option>`).join('')}</select>
+    <select id="fStat"><option value="all">כל הסטטוסים</option>${Object.keys(STATUS_LABEL).map(s=>`<option value="${s}">${STATUS_LABEL[s]}</option>`).join('')}</select>
+  `;
+  el.querySelector('#fCat').value = taskFilterState.category;
+  el.querySelector('#fUrg').value = taskFilterState.urgency;
+  el.querySelector('#fStat').value = taskFilterState.status;
+  el.querySelector('#fCat').addEventListener('change', e=>{ taskFilterState.category=e.target.value; renderTaskFull(); });
+  el.querySelector('#fUrg').addEventListener('change', e=>{ taskFilterState.urgency=e.target.value; renderTaskFull(); });
+  el.querySelector('#fStat').addEventListener('change', e=>{ taskFilterState.status=e.target.value; renderTaskFull(); });
+}
+function taskFormFields(t){
+  t = t||{};
+  return `
+    <div class="form-row"><label>תיאור המשימה</label><input data-field="text" type="text" value="${esc(t.text||'')}" required></div>
+    <div class="form-row"><label>קטגוריה</label><select data-field="category">${CATEGORIES.map(c=>`<option value="${esc(c)}" ${t.category===c?'selected':''}>${esc(c)}</option>`).join('')}</select></div>
+    <div class="form-row"><label>דחיפות</label><select data-field="urgency">${Object.keys(URGENCY_LABEL).map(u=>`<option value="${u}" ${t.urgency===u?'selected':''}>${URGENCY_LABEL[u]}</option>`).join('')}</select></div>
+    <div class="form-row"><label>תאריך יעד (לא חובה)</label><input data-field="deadline" type="date" value="${t.deadline||''}"></div>
+    <div class="form-row"><label>הערה (לא חובה)</label><input data-field="note" type="text" value="${esc(t.note||'')}"></div>
+  `;
+}
+function renderTaskFull(){
+  renderTaskFilters();
+  let list = STATE.tasks.filter(t=>
+    (taskFilterState.category==='all'||t.category===taskFilterState.category) &&
+    (taskFilterState.urgency==='all'||t.urgency===taskFilterState.urgency) &&
+    (taskFilterState.status==='all'||t.status===taskFilterState.status)
+  );
+  const byCat = {};
+  CATEGORIES.forEach(c=>byCat[c]=[]);
+  list.forEach(t=>{ (byCat[t.category]=byCat[t.category]||[]).push(t); });
+  let html = '';
+  Object.keys(byCat).forEach(cat=>{
+    const items = sortedTasks(byCat[cat]);
+    if(!items.length) return;
+    html += `<div class="cat-group"><h3>${esc(cat)}</h3>`;
+    items.forEach(t=>{
+      html += `<div class="task-row-full status-${t.status}" data-task="${t.id}">
+        <button class="status-pill status-${t.status}" data-action="cycle">${STATUS_LABEL[t.status]}</button>
+        <div class="task-body">
+          <span class="task-text">${esc(t.text)}</span>
+          <div class="task-meta" style="margin-top:5px;">
+            <span class="badge badge-${t.urgency}">${URGENCY_LABEL[t.urgency]}</span>
+            ${t.deadline?`<span>יעד: ${formatHeDate(t.deadline)}</span>`:''}
+            ${t.note?`<span>· ${esc(t.note)}</span>`:''}
+          </div>
+        </div>
+        <button class="icon-action" data-action="edit" title="עריכה">✎</button>
+        <button class="icon-action" data-action="del" title="מחיקה">🗑</button>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  document.getElementById('taskFull').innerHTML = html || '<div class="empty-note">אין משימות תואמות</div>';
+  document.querySelectorAll('#taskFull .task-row-full').forEach(row=>{
+    const id = parseInt(row.dataset.task);
+    row.querySelector('[data-action="cycle"]').addEventListener('click', ()=>{ cycleTaskStatus(id); renderTaskFull(); });
+    row.querySelector('[data-action="edit"]').addEventListener('click', ()=>{
+      const t = STATE.tasks.find(x=>x.id===id);
+      openModal('עריכת משימה', taskFormFields(t), data=>{ updateTask(id, data); renderTaskFull(); },
+        `<button type="button" class="btn-danger" id="modalDelete">מחיקה</button>`);
+      document.getElementById('modalDelete').addEventListener('click', ()=>{
+        deleteTask(id); document.querySelector('.modal-overlay').remove(); renderTaskFull();
+      });
+    });
+    row.querySelector('[data-action="del"]').addEventListener('click', ()=>{
+      if(confirm('למחוק את המשימה?')){ deleteTask(id); renderTaskFull(); }
+    });
+  });
+}
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('addTaskBtn').addEventListener('click', ()=>{
+    openModal('משימה חדשה', taskFormFields({category:CATEGORIES[0], urgency:'medium'}), data=>{
+      addTask(data); renderTaskFull();
+    });
+  });
+});
+
+/* ================= CALENDAR FULL ================= */
+let calFullMonth = null;
+function renderCalendarFull(){
+  if(!calFullMonth){ initMiniCalMonth(); calFullMonth = {...miniCalMonth}; }
+  const {y,m} = calFullMonth;
+  const cells = buildMonthCells(y,m);
+  const today = todayStr();
+  let html = `<div class="mini-cal-nav" style="font-size:17px; margin-bottom:12px;">
+    <button data-fcal="prev" style="font-size:22px;">‹</button>
+    <strong>${HEBREW_MONTHS[m]} ${y}</strong>
+    <button data-fcal="next" style="font-size:22px;">›</button>
+  </div><div class="cal-full-grid">`;
+  HEBREW_DOW.forEach(d=>html+=`<div class="cal-dow">${d}</div>`);
+  cells.forEach(c=>{
+    const ds = dstr(c.date);
+    const evs = eventsForDate(ds);
+    html += `<div class="cal-full-day ${c.out?'out':''} ${ds===today?'today':''}" data-date="${ds}">
+      <div class="num">${c.date.getDate()}</div>
+      ${evs.slice(0,3).map(e=>`<div class="ev-line et-${e.type}">${esc(e.title)}</div>`).join('')}
+      ${evs.length>3?`<div class="ev-line">+${evs.length-3} נוספים</div>`:''}
+    </div>`;
+  });
+  html += `</div>`;
+  document.getElementById('calendarFull').innerHTML = html;
+  document.querySelectorAll('#calendarFull [data-fcal]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      calFullMonth.m += (b.dataset.fcal==='next'?1:-1);
+      if(calFullMonth.m<0){calFullMonth.m=11;calFullMonth.y--;}
+      if(calFullMonth.m>11){calFullMonth.m=0;calFullMonth.y++;}
+      renderCalendarFull();
+    });
+  });
+  document.querySelectorAll('#calendarFull .cal-full-day').forEach(d=>{
+    d.addEventListener('click', ()=>openDayDetail(d.dataset.date));
+  });
+}
+let noteSaveTimer = null;
+function openDayDetail(dateStr){
+  const panel = document.getElementById('dayDetail');
+  panel.classList.remove('hidden');
+  const evs = eventsForDate(dateStr);
+  const isPast = dateStr < todayStr();
+  const notesLabel = isPast ? 'סיכום / מה קרה בפועל' : 'הערות והכנה לקראת התאריך';
+  const note = (STATE.notes && STATE.notes[dateStr]) || '';
+  panel.innerHTML = `
+    <h3>${formatHeDate(dateStr)}</h3>
+    ${evs.length? evs.map(e=>`<div class="dd-event"><div class="dd-title">${esc(e.title)}</div>${e.note?`<div class="dd-note">${esc(e.note)}</div>`:''}</div>`).join('') : '<div class="empty-note">אין אירועים מתוזמנים בתאריך זה</div>'}
+    <div class="dd-notes-label">${notesLabel} <span class="save-indicator" id="saveIndicator">נשמר ✓</span></div>
+    <div class="dd-notes"><textarea id="dayNotes" placeholder="כתבו כאן...">${esc(note)}</textarea></div>
+  `;
+  panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+  const ta = document.getElementById('dayNotes');
+  ta.addEventListener('input', ()=>{
+    clearTimeout(noteSaveTimer);
+    noteSaveTimer = setTimeout(()=>{
+      STATE.notes = STATE.notes || {};
+      STATE.notes[dateStr] = ta.value;
+      saveState();
+      const ind = document.getElementById('saveIndicator');
+      if(ind){ ind.classList.add('show'); setTimeout(()=>ind.classList.remove('show'), 1200); }
+    }, 500);
+  });
+}
+
+/* ================= GUESTS FULL ================= */
+let guestFilterState = {side:'all', status:'all', q:'', sortKey:'name', sortDir:1};
+function renderGuestFilters(){
+  const sides = [...new Set(STATE.guests.map(g=>g.side).filter(Boolean))];
+  const el = document.getElementById('guestFilters');
+  el.innerHTML = `
+    <input type="text" id="gSearch" placeholder="חיפוש לפי שם..." value="${esc(guestFilterState.q)}">
+    <select id="gSide"><option value="all">כל הצדדים</option>${sides.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('')}</select>
+    <select id="gStat"><option value="all">כל הסטטוסים</option>${Object.keys(GSTATUS_LABEL).map(s=>`<option value="${s}">${GSTATUS_LABEL[s]}</option>`).join('')}</select>
+  `;
+  el.querySelector('#gSide').value = guestFilterState.side;
+  el.querySelector('#gStat').value = guestFilterState.status;
+  el.querySelector('#gSearch').addEventListener('input', e=>{ guestFilterState.q=e.target.value; renderGuestFull(); });
+  el.querySelector('#gSide').addEventListener('change', e=>{ guestFilterState.side=e.target.value; renderGuestFull(); });
+  el.querySelector('#gStat').addEventListener('change', e=>{ guestFilterState.status=e.target.value; renderGuestFull(); });
+}
+function guestFormFields(g){
+  g = g||{};
+  return `
+    <div class="form-row"><label>שם</label><input data-field="name" type="text" value="${esc(g.name||'')}" required></div>
+    <div class="form-row"><label>טלפון</label><input data-field="phone" type="text" value="${esc(g.phone||'')}"></div>
+    <div class="form-row"><label>כמות מוזמנים</label><input data-field="qty" type="number" min="1" value="${g.qty||1}"></div>
+    <div class="form-row"><label>צד</label><input data-field="side" type="text" value="${esc(g.side||'')}"></div>
+    <div class="form-row"><label>קטגוריה</label><input data-field="category" type="text" value="${esc(g.category||'')}"></div>
+    <div class="form-row"><label>מעגל</label><input data-field="circle" type="text" value="${esc(g.circle||'')}"></div>
+    <div class="form-row"><label>סטטוס</label><select data-field="status">${Object.keys(GSTATUS_LABEL).map(s=>`<option value="${s}" ${g.status===s?'selected':''}>${GSTATUS_LABEL[s]}</option>`).join('')}</select></div>
+  `;
+}
+function renderGuestFull(){
+  renderGuestFilters();
+  let list = STATE.guests.filter(g=>
+    (guestFilterState.side==='all'||g.side===guestFilterState.side) &&
+    (guestFilterState.status==='all'||g.status===guestFilterState.status) &&
+    (!guestFilterState.q || (g.name||'').includes(guestFilterState.q))
+  );
+  list.sort((a,b)=>{
+    const k = guestFilterState.sortKey;
+    let av=a[k], bv=b[k];
+    if(typeof av==='string') av=av||''; if(typeof bv==='string') bv=bv||'';
+    if(av<bv) return -1*guestFilterState.sortDir;
+    if(av>bv) return 1*guestFilterState.sortDir;
+    return 0;
+  });
+  let html = `<div class="data-table-wrap"><table class="data-table"><thead><tr>
+    <th data-sort="name">שם</th><th data-sort="phone">טלפון</th><th data-sort="side">צד</th>
+    <th data-sort="category">קטגוריה</th><th data-sort="qty">כמות</th><th data-sort="status">סטטוס</th><th></th>
+  </tr></thead><tbody>`;
+  list.forEach(g=>{
+    html += `<tr data-guest="${g.id}">
+      <td>${esc(g.name)}</td>
+      <td class="editable" data-action="editphone">${g.phone?esc(g.phone):'<span style="color:var(--ink-soft)">להוסיף</span>'}</td>
+      <td>${esc(g.side||'-')}</td>
+      <td>${esc(g.category||'-')}</td>
+      <td>${g.qty||1}</td>
+      <td><span class="pill clickable pill-${g.status}" data-action="cyclestatus">${GSTATUS_LABEL[g.status]||g.status}</span></td>
+      <td><button class="icon-action" data-action="edit">✎</button><button class="icon-action" data-action="del">🗑</button></td>
+    </tr>`;
+  });
+  html += `</tbody></table></div>`;
+  document.getElementById('guestFull').innerHTML = list.length ? html : '<div class="empty-note">אין מוזמנים תואמים</div>';
+  document.querySelectorAll('#guestFull th[data-sort]').forEach(th=>{
+    th.addEventListener('click', ()=>{
+      const k = th.dataset.sort;
+      if(guestFilterState.sortKey===k) guestFilterState.sortDir *= -1; else { guestFilterState.sortKey=k; guestFilterState.sortDir=1; }
+      renderGuestFull();
+    });
+  });
+  document.querySelectorAll('#guestFull tr[data-guest]').forEach(row=>{
+    const id = parseInt(row.dataset.guest);
+    row.querySelector('[data-action="cyclestatus"]').addEventListener('click', ()=>{ cycleGuestStatus(id); renderGuestFull(); renderGuestSummary(); });
+    row.querySelector('[data-action="editphone"]').addEventListener('click', function(){
+      const g = STATE.guests.find(x=>x.id===id);
+      const input = document.createElement('input');
+      input.type='text'; input.value=g.phone||''; input.style.width='120px';
+      this.innerHTML=''; this.appendChild(input); input.focus();
+      const commit = ()=>{ updateGuest(id, {phone:input.value.trim()}); renderGuestFull(); };
+      input.addEventListener('blur', commit);
+      input.addEventListener('keydown', e=>{ if(e.key==='Enter') input.blur(); });
+    });
+    row.querySelector('[data-action="edit"]').addEventListener('click', ()=>{
+      const g = STATE.guests.find(x=>x.id===id);
+      openModal('עריכת מוזמן', guestFormFields(g), data=>{ data.qty=parseInt(data.qty)||1; updateGuest(id, data); renderGuestFull(); renderGuestSummary(); });
+    });
+    row.querySelector('[data-action="del"]').addEventListener('click', ()=>{
+      if(confirm('למחוק את המוזמן?')){ deleteGuest(id); renderGuestFull(); renderGuestSummary(); }
+    });
+  });
+}
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('addGuestBtn').addEventListener('click', ()=>{
+    openModal('מוזמן חדש', guestFormFields({status:'pending', qty:1}), data=>{
+      data.qty=parseInt(data.qty)||1; data.status = data.status||'pending';
+      addGuest(data); renderGuestFull(); renderGuestSummary();
+    });
+  });
+});
+
+/* ================= BUDGET FULL ================= */
+function budgetFormFields(b){
+  b = b||{};
+  return `
+    <div class="form-row"><label>ספק</label><input data-field="vendor" type="text" value="${esc(b.vendor||'')}" required></div>
+    <div class="form-row"><label>קטגוריה</label><input data-field="category" type="text" value="${esc(b.category||'')}"></div>
+    <div class="form-row"><label>עלות כוללת (₪)</label><input data-field="cost" type="number" min="0" value="${b.cost||0}"></div>
+    <div class="form-row"><label>שולם עד כה (₪)</label><input data-field="paid" type="number" min="0" value="${b.paid||0}"></div>
+    <div class="form-row"><label>תאריך יעד לתשלום</label><input data-field="dueDate" type="date" value="${b.dueDate||''}"></div>
+  `;
+}
+function renderBudgetFull(){
+  const list = [...STATE.budgetItems].sort((a,b)=>b.remaining-a.remaining);
+  const tot = budgetTotals();
+  let html = `<div class="assumption-note">הערה: תאריכי היעד לתשלום אינם מופיעים בקובץ המקורי - כברירת מחדל הוגדרו לתאריך החתונה. אפשר לערוך כל תאריך בנפרד.</div>`;
+  html += `<div class="data-table-wrap"><table class="data-table"><thead><tr>
+    <th>ספק</th><th>קטגוריה</th><th>עלות</th><th>שולם</th><th>נותר לתשלום</th><th>תאריך יעד</th><th>סטטוס</th><th></th>
+  </tr></thead><tbody>`;
+  list.forEach(b=>{
+    html += `<tr data-budget="${b.id}">
+      <td>${esc(b.vendor)}</td>
+      <td>${esc(b.category||'-')}</td>
+      <td>₪${fmt(b.cost)}</td>
+      <td>₪${fmt(b.paid)}</td>
+      <td>₪${fmt(b.remaining)}</td>
+      <td>${b.dueDate?formatHeDate(b.dueDate):'-'}</td>
+      <td>${b.remaining>0?`<span class="balance-flag">יתרה פתוחה</span>`:`<span class="paid-flag">שולם במלואו</span>`}</td>
+      <td><button class="icon-action" data-action="edit">✎</button><button class="icon-action" data-action="del">🗑</button></td>
+    </tr>`;
+  });
+  html += `</tbody><tfoot><tr><td>סה"כ</td><td></td><td>₪${fmt(tot.cost)}</td><td>₪${fmt(tot.paid)}</td><td>₪${fmt(tot.remaining)}</td><td colspan="3"></td></tr></tfoot></table></div>`;
+  document.getElementById('budgetFull').innerHTML = html;
+  document.querySelectorAll('#budgetFull tr[data-budget]').forEach(row=>{
+    const id = parseInt(row.dataset.budget);
+    row.querySelector('[data-action="edit"]').addEventListener('click', ()=>{
+      const b = STATE.budgetItems.find(x=>x.id===id);
+      openModal('עריכת הוצאה', budgetFormFields(b), data=>{
+        updateBudgetItem(id, data); renderBudgetFull(); renderBudgetSummary();
+      });
+    });
+    row.querySelector('[data-action="del"]').addEventListener('click', ()=>{
+      if(confirm('למחוק את פריט התקציב?')){ deleteBudgetItem(id); renderBudgetFull(); renderBudgetSummary(); }
+    });
+  });
+  renderFundingFull();
+}
+function fundingFormFields(f){
+  f = f||{};
+  return `
+    <div class="form-row"><label>מקור</label><input data-field="source" type="text" value="${esc(f.source||'')}" required></div>
+    <div class="form-row"><label>סכום שהובטח (₪)</label><input data-field="pledged" type="number" min="0" value="${f.pledged||0}"></div>
+    <div class="form-row"><label>סכום שהתקבל (₪)</label><input data-field="received" type="number" min="0" value="${f.received||0}"></div>
+    <div class="form-row"><label>הערה</label><input data-field="note" type="text" value="${esc(f.note||'')}"></div>
+  `;
+}
+function renderFundingFull(){
+  const list = STATE.funding||[];
+  let html = `<div class="data-table-wrap"><table class="data-table"><thead><tr>
+    <th>מקור</th><th>הובטח</th><th>התקבל</th><th>הערה</th><th></th>
+  </tr></thead><tbody>`;
+  list.forEach(f=>{
+    html += `<tr data-funding="${f.id}">
+      <td>${esc(f.source)}</td><td>₪${fmt(f.pledged)}</td><td>₪${fmt(f.received)}</td><td>${esc(f.note||'-')}</td>
+      <td><button class="icon-action" data-action="edit">✎</button><button class="icon-action" data-action="del">🗑</button></td>
+    </tr>`;
+  });
+  html += `</tbody></table></div>`;
+  document.getElementById('fundingFull').innerHTML = list.length ? html : '<div class="empty-note">אין מקורות מימון</div>';
+  document.querySelectorAll('#fundingFull tr[data-funding]').forEach(row=>{
+    const id = parseInt(row.dataset.funding);
+    row.querySelector('[data-action="edit"]').addEventListener('click', ()=>{
+      const f = STATE.funding.find(x=>x.id===id);
+      openModal('עריכת מקור מימון', fundingFormFields(f), data=>{ updateFunding(id,data); renderFundingFull(); });
+    });
+    row.querySelector('[data-action="del"]').addEventListener('click', ()=>{
+      if(confirm('למחוק את מקור המימון?')){ deleteFunding(id); renderFundingFull(); }
+    });
+  });
+}
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('addBudgetBtn').addEventListener('click', ()=>{
+    openModal('הוצאה חדשה', budgetFormFields({dueDate:STATE.weddingDate}), data=>{
+      addBudgetItem(data); renderBudgetFull(); renderBudgetSummary();
+    });
+  });
+  document.getElementById('addFundingBtn').addEventListener('click', ()=>{
+    openModal('מקור מימון חדש', fundingFormFields({}), data=>{
+      addFunding(data); renderFundingFull();
+    });
+  });
+});
+
+/* ================= export / import / reset ================= */
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('btnExport').addEventListener('click', ()=>{
+    const blob = new Blob([JSON.stringify(STATE, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'wedding-dashboard-backup-'+todayStr()+'.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+  document.getElementById('btnImport').addEventListener('click', ()=>{
+    document.getElementById('fileImport').click();
+  });
+  document.getElementById('fileImport').addEventListener('change', e=>{
+    const file = e.target.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      try{
+        const parsed = JSON.parse(reader.result);
+        if(!Array.isArray(parsed.guests)) throw new Error('bad shape');
+        STATE = parsed;
+        STATE.notes = STATE.notes || {};
+        saveState();
+        nav('home');
+        alert('הנתונים יובאו בהצלחה');
+      }catch(err){ alert('קובץ לא תקין'); }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+  document.getElementById('btnReset').addEventListener('click', ()=>{
+    if(confirm('לאפס את כל הנתונים לנתוני המקור מהאקסל? כל השינויים שביצעתם יימחקו.')){
+      STATE = JSON.parse(JSON.stringify(DATA_DEFAULT));
+      STATE.notes = {};
+      saveState();
+      nav('home');
+    }
+  });
+  document.getElementById('btnHome').addEventListener('click', ()=>nav('home'));
+  document.querySelectorAll('[data-nav]').forEach(el=>{
+    el.addEventListener('click', ()=>nav(el.dataset.nav));
+  });
+
+  STATE = loadState();
+  document.getElementById('coupleTitle').innerHTML = `${esc(STATE.coupleNames.b)} <span class="amp">&</span> ${esc(STATE.coupleNames.a)}`;
+  showView('view-home');
+  document.getElementById('view-home').classList.add('visible');
+  renderHome();
+});
+
+</script>
+</body>
+</html>
